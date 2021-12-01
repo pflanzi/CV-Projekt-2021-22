@@ -35,6 +35,7 @@ for i in tqdm(range(20, 100)):
         except cv2.error as error:
             continue
             # Some rotation exceeds the height/width of the image but doesn't break the program
+            # random comment
 
 cv2.imshow("test", img_rgb)
 cv2.waitKey(0)
