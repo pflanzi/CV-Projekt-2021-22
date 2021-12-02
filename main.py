@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from scipy import ndimage
 from tqdm import tqdm
-from PIL import Image
 import glob
 
 
@@ -33,7 +32,7 @@ class DetectionAlgorithm:
             temp_height, temp_width = template.shape
             img_height, img_width = img_gray.shape
 
-            # Template bigger then original Picture -> exit
+            # Template bigger than original Picture -> exit
             if temp_height >= img_height or temp_width >= img_width:
                 break
 
