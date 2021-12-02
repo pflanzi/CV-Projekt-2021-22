@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a3f27894-5988-493c-b21c-d47a6cc7e96d" name="Changes" comment="Updated Gitignore">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_01_12_21,_17_51_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_01_12_21,_17_52_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_01_12_21,_17_52_[Changes]1/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/single_apples/test_apple3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/apple.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/images/single_apples/apple.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/test_apple.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/images/single_apples/test_apple.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/test_apple2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/images/single_apples/test_apple2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="a3f27894-5988-493c-b21c-d47a6cc7e96d" name="Changes" comment="Added Shapes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -135,7 +122,7 @@
       <updated>1638371015841</updated>
       <workItem from="1638371017951" duration="5991000" />
       <workItem from="1638377069522" duration="1363000" />
-      <workItem from="1638456244303" duration="4656000" />
+      <workItem from="1638456244303" duration="5225000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <created>1638376501878</created>
@@ -172,7 +159,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638378337583</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added Shapes">
+      <created>1638460966837</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1638460966837</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -251,10 +245,11 @@
     <MESSAGE value="added gitignore" />
     <MESSAGE value="test" />
     <MESSAGE value="Updated Gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated Gitignore" />
+    <MESSAGE value="Added Shapes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Shapes" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/CVProject$tmp.coverage" NAME="tmp Coverage Results" MODIFIED="1638375986069" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/CVProject$main.coverage" NAME="main Coverage Results" MODIFIED="1638460915466" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/CVProject$main.coverage" NAME="main Coverage Results" MODIFIED="1638460927218" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
