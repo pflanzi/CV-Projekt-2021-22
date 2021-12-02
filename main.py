@@ -40,6 +40,7 @@ class DetectionAlgorithm:
             for angle in range(0, 360, 20):
                 try:
                     # Template matching
+                    # TODO: Check multi-template matching
                     w, h = template.shape[::-1]
                     res = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
                     threshold_template = 0.9
@@ -51,6 +52,7 @@ class DetectionAlgorithm:
                         cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
 
                     # Shape matching
+
                     '''
                     ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
                     ret, thresh2 = cv2.threshold(img_template, 127, 255, 0)
@@ -79,7 +81,7 @@ class DetectionAlgorithm:
                             contour, 0.01 * cv2.arcLength(contour, True), True)
 
                         # using drawContours() function
-                        cv2.drawContours(self.img_rgb, [contour], 0, (0, 0, 255), 5)
+                        cv2.drawContours(self.img_rgb, [contour], 0, (0, 0, 0), 1)
 
                         # finding center point of shape
                         m = cv2.moments(contour)
@@ -87,9 +89,9 @@ class DetectionAlgorithm:
                             x = int(m['m10'] / m['m00'])
                             y = int(m['m01'] / m['m00'])
 
-                        if len(approx) >= 20:
+                        if len(approx) >= 100:
                             cv2.putText(self.img_rgb, 'apple',
-                                        (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                                        (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
                     for pt in zip(*loc[::-1]):
                         cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
