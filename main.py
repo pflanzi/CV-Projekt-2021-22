@@ -26,6 +26,7 @@ class DetectionAlgorithm:
 
             # resize image
             template = cv2.resize(template, dim, interpolation=cv2.INTER_AREA)
+
             # grayscale
             img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
 
@@ -42,6 +43,7 @@ class DetectionAlgorithm:
                     w, h = template.shape[::-1]
                     res = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
                     threshold_template = 0.9
+
                     # TODO: Check for color in an area around Object + Template
                     loc = np.where(res >= threshold_template)
 
