@@ -30,11 +30,11 @@ class DetectionAlgorithm:
             # grayscale
             img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
 
-            temp_height, temp_width = template.shape
-            img_height, img_width = img_gray.shape
+            th, tw = template.shape
+            ih, iw = img_gray.shape
 
             # Template bigger than original Picture -> exit
-            if temp_height >= img_height or temp_width >= img_width:
+            if th >= ih or tw >= iw:
                 break
 
             for angle in range(0, 360, 20):
@@ -67,8 +67,7 @@ class DetectionAlgorithm:
                     '''
 
                     _, threshold = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
-                    contours, _ = cv2.findContours(
-                        threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
                     i = 0
                     for contour in contours:
