@@ -41,6 +41,22 @@ class DetectionAlgorithm:
                 try:
                     # Template matching
                     # TODO: Check multi-template matching
+                    # below an example code of how multi-template matching could work
+                    # result = cv2.matchTemplate(imageGray, templateGray, cv2.TM_CCOEFF_NORMED)
+                    #
+                    # # ----- get all the coordinates where the matching result is >= threshold
+                    # threshold = 0.7
+                    # (yCoords, xCoords) = np.where(result >= threshold)
+                    # clone = image.copy()
+                    #
+                    # print("[INFO] {} matched locations *before* NMS".format(len(yCoords)))
+                    #
+                    # # ----- loop over the x- and y-coordinates and draw the bounding boxes
+                    # for (x, y) in zip(xCoords, yCoords):
+                    #     cv2.rectangle(clone, (x, y), (x + tW, y + tH), (255, 0, 0), 3)
+                    #
+                    # cv2.imshow("Before NMS", clone)
+
                     w, h = template.shape[::-1]
                     res = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
                     threshold_template = 0.9
