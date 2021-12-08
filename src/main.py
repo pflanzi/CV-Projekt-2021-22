@@ -38,6 +38,7 @@ class DetectionAlgorithm:
                 break
 
             for angle in range(0, 360, 20):
+                # TODO: more precise try catch
                 try:
                     # Template matching
                     # TODO: Check multi-template matching
