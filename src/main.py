@@ -10,7 +10,7 @@ class DetectionAlgorithm:
     def __init__(self):
         self.width = 0
         self.height = 0
-        self.img_rgb = cv2.imread('images/six_apples.jpg')
+        self.img_rgb = cv2.imread('images/multiple_apples.jpg')
         self.image_list = []
         for picture in glob.glob('images/single_apples/*'):
             image = cv2.imread(picture)
@@ -38,11 +38,11 @@ class DetectionAlgorithm:
 
             output = self.img_rgb.copy()
             # detect circles in the image
-            circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 60,
+            circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 58,
                                        param1=90,
-                                       param2=40,
+                                       param2=45,
                                        minRadius=65,
-                                       maxRadius=100)
+                                       maxRadius=105)
             # ensure at least some circles were found
             if circles is not None:
                 # convert the (x, y) coordinates and radius of the circles to integers
@@ -54,7 +54,7 @@ class DetectionAlgorithm:
                     cv2.circle(output, (x, y), r, (0, 255, 0), 4)
                     cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
                 cv2.imshow("Test", output)
-                cv2.imshow("Gray", img_gray)
+                # cv2.imshow("Gray", img_gray)
                 break
 
     def main(self):
