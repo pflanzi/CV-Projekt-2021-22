@@ -8,7 +8,7 @@ from PIL import Image
 
 # ------ theme ------ #
 sg.theme('Light Green')
-
+ 
 # ------ menu ------ #
 menu_def = [
     ['&File', ['Open', '---', 'Close']],

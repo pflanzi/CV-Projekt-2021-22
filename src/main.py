@@ -68,50 +68,6 @@ class DetectionAlgorithm:
                     for pt in zip(*loc[::-1]):
                         cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
 
-                    # Shape matching
-
-                    '''
-                    ret, thresh = cv2.threshold(img_gray, 127, 255, 0)
-                    ret, thresh2 = cv2.threshold(img_template, 127, 255, 0)
-                    contour, hierarchy = cv2.findContours(thresh, 2, 1)
-                    cnt1 = contour[0]
-                    contour, hierarchy = cv2.findContours(thresh2, 2, 1)
-                    cnt2 = contour[0]
-                    ret = cv2.matchShapes(cnt1, cnt2, 1, 0.0)
-                    
-                    threshold_shape = 0.3
-                    loc = np.where(ret <= threshold_shape)
-                    '''
-
-                    _, threshold = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
-                    contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-                    i = 0
-                    for contour in contours:
-                        if i == 0:
-                            i = 1
-                            continue
-
-                        # cv2.approxPloyDP() function to approximate the shape
-                        # TODO: fine tuning maybe
-                        approx = cv2.approxPolyDP(
-                            contour, 0.01 * cv2.arcLength(contour, True), True)
-
-                        # using drawContours() function
-                        cv2.drawContours(self.img_rgb, [contour], 0, (0, 0, 0), 1)
-
-                        # finding center point of shape
-                        m = cv2.moments(contour)
-                        if m['m00'] != 0.0:
-                            x = int(m['m10'] / m['m00'])
-                            y = int(m['m01'] / m['m00'])
-
-                        if len(approx) >= 100:
-                            cv2.putText(self.img_rgb, 'apple',
-                                        (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
-
-                    for pt in zip(*loc[::-1]):
-                        cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
                 except cv2.error as error:
                     continue
                     # Some rotation exceeds the height/width of the image but doesn't break the program
