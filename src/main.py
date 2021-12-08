@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from scipy import ndimage
 from tqdm import tqdm
 import glob
 
@@ -10,9 +9,9 @@ class DetectionAlgorithm:
     def __init__(self):
         self.width = 0
         self.height = 0
-        self.img_rgb = cv2.imread('images/six_apples.jpg')
+        self.img_rgb = cv2.imread('../images/six_apples.jpg')
         self.image_list = []
-        for picture in glob.glob('images/single_apples/*'):
+        for picture in glob.glob('../images/single_apples/*'):
             image = cv2.imread(picture)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             self.image_list.append(image)
@@ -44,7 +43,7 @@ class DetectionAlgorithm:
                     # TODO: Check multi-template matching
                     # below an example code of how multi-template matching could work
                     w, h = template.shape[::-1]
-                    result = cv2.matchTemplate(img_gray, img_template, cv2.TM_CCOEFF_NORMED)
+                    result = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
 
                     # ----- get all the coordinates where the matching result is >= threshold
                     threshold = 0.7
@@ -77,7 +76,7 @@ class DetectionAlgorithm:
     def main(self):
         for image in self.image_list:
             self.detect(image)
-        cv2.imshow("Apple Detection", self.img_rgb)
+        # cv2.imshow("Apple Detection", self.img_rgb)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
