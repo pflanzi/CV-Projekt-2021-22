@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from scipy import ndimage
 from tqdm import tqdm
 import glob
 
@@ -9,22 +10,21 @@ class DetectionAlgorithm:
     def __init__(self):
         self.width = 0
         self.height = 0
-        self.img_rgb = cv2.imread('../images/six_apples.jpg')
+        self.img_rgb = cv2.imread('images/multiple_apples.jpg')
         self.image_list = []
-        for picture in glob.glob('../images/single_apples/*'):
+        for picture in glob.glob('images/single_apples/*'):
             image = cv2.imread(picture)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             self.image_list.append(image)
 
     def detect(self, img_template):
         for scale_percent in tqdm(range(20, 150, 10)):
-            template = img_template
-            self.width = int(template.shape[1] * scale_percent / 100)
-            self.height = int(template.shape[0] * scale_percent / 100)
+            self.width = int(img_template.shape[1] * scale_percent / 100)
+            self.height = int(img_template.shape[0] * scale_percent / 100)
             dim = (self.width, self.height)
 
             # resize image
-            template = cv2.resize(template, dim, interpolation=cv2.INTER_AREA)
+            template = cv2.resize(img_template, dim, interpolation=cv2.INTER_AREA)
 
             # grayscale
             img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
@@ -36,46 +36,31 @@ class DetectionAlgorithm:
             if th >= ih or tw >= iw:
                 break
 
-            for angle in range(0, 360, 20):
-                # TODO: more precise try catch
-                try:
-                    # Template matching
-                    # TODO: Check multi-template matching
-                    # below an example code of how multi-template matching could work
-                    w, h = template.shape[::-1]
-                    result = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-
-                    # ----- get all the coordinates where the matching result is >= threshold
-                    threshold = 0.7
-                    (yCoords, xCoords) = np.where(result >= threshold)
-                    clone = self.img_rgb.copy()
-
-                    # print("[INFO] {} matched locations *before* NMS".format(len(yCoords)))
-
-                    # ----- loop over the x- and y-coordinates and draw the bounding boxes
-                    for (x, y) in zip(xCoords, yCoords):
-                        cv2.rectangle(clone, (x, y), (x + w, y + h), (255, 0, 0), 3)
-
-                    cv2.imshow("Before NMS", clone)
-
-                    '''
-                    w, h = template.shape[::-1]
-                    result = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
-                    match_thresh = 0.9
-
-                    # TODO: Check for color in an area around Object + Template
-                    loc = np.where(result >= match_thresh)
-
-                    for pt in zip(*loc[::-1]):
-                        cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
-                    '''
-                except cv2.error as error:
-                    continue
-                    # Some rotation exceeds the height/width of the image but doesn't break the program
+            output = self.img_rgb.copy()
+            # detect circles in the image
+            circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 58,
+                                       param1=90,
+                                       param2=45,
+                                       minRadius=65,
+                                       maxRadius=105)
+            # ensure at least some circles were found
+            if circles is not None:
+                # convert the (x, y) coordinates and radius of the circles to integers
+                circles = np.round(circles[0, :]).astype("int")
+                # loop over the (x, y) coordinates and radius of the circles
+                for (x, y, r) in circles:
+                    # draw the circle in the output image, then draw a rectangle
+                    # corresponding to the center of the circle
+                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                    cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                cv2.imshow("Test", output)
+                # cv2.imshow("Gray", img_gray)
+                break
 
     def main(self):
-        for image in self.image_list:
-            self.detect(image)
+        # for image in self.image_list:
+        #     self.detect(image)
+        self.detect(self.image_list[0])
         # cv2.imshow("Apple Detection", self.img_rgb)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
