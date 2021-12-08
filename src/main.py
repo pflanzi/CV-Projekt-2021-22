@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from scipy import ndimage
 from tqdm import tqdm
 import glob
 
