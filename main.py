@@ -75,6 +75,7 @@ class DetectionAlgorithm:
                             continue
 
                         # cv2.approxPloyDP() function to approximate the shape
+                        # TODO: fine tuning maybe
                         approx = cv2.approxPolyDP(
                             contour, 0.01 * cv2.arcLength(contour, True), True)
 
