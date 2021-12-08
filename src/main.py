@@ -59,11 +59,11 @@ class DetectionAlgorithm:
                     # cv2.imshow("Before NMS", clone)
 
                     w, h = template.shape[::-1]
-                    res = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
-                    threshold_template = 0.9
+                    result = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
+                    match_thresh = 0.9
 
                     # TODO: Check for color in an area around Object + Template
-                    loc = np.where(res >= threshold_template)
+                    loc = np.where(result >= match_thresh)
 
                     for pt in zip(*loc[::-1]):
                         cv2.rectangle(self.img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 0), 1)
