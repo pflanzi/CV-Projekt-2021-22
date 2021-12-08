@@ -26,23 +26,41 @@ class DetectionAlgorithm:
 
             # resize image
             template = cv2.resize(template, dim, interpolation=cv2.INTER_AREA)
+
             # grayscale
             img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
 
-            temp_height, temp_width = template.shape
-            img_height, img_width = img_gray.shape
+            th, tw = template.shape
+            ih, iw = img_gray.shape
 
             # Template bigger than original Picture -> exit
-            if temp_height >= img_height or temp_width >= img_width:
+            if th >= ih or tw >= iw:
                 break
 
             for angle in range(0, 360, 20):
                 try:
                     # Template matching
                     # TODO: Check multi-template matching
+                    # below an example code of how multi-template matching could work
+                    # result = cv2.matchTemplate(imageGray, templateGray, cv2.TM_CCOEFF_NORMED)
+                    #
+                    # # ----- get all the coordinates where the matching result is >= threshold
+                    # threshold = 0.7
+                    # (yCoords, xCoords) = np.where(result >= threshold)
+                    # clone = image.copy()
+                    #
+                    # print("[INFO] {} matched locations *before* NMS".format(len(yCoords)))
+                    #
+                    # # ----- loop over the x- and y-coordinates and draw the bounding boxes
+                    # for (x, y) in zip(xCoords, yCoords):
+                    #     cv2.rectangle(clone, (x, y), (x + tW, y + tH), (255, 0, 0), 3)
+                    #
+                    # cv2.imshow("Before NMS", clone)
+
                     w, h = template.shape[::-1]
                     res = cv2.matchTemplate(img_gray, ndimage.rotate(template, angle), cv2.TM_CCOEFF_NORMED)
                     threshold_template = 0.9
+
                     # TODO: Check for color in an area around Object + Template
                     loc = np.where(res >= threshold_template)
 
@@ -65,8 +83,7 @@ class DetectionAlgorithm:
                     '''
 
                     _, threshold = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
-                    contours, _ = cv2.findContours(
-                        threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
                     i = 0
                     for contour in contours:
