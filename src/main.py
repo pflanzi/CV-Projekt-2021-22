@@ -31,11 +31,11 @@ class DetectionAlgorithm:
             img_rgb : numpy.ndarray
                 stores a colored image (channels are in BGR order)
         """
-        self.img_rgb = cv2.imread('../images/multiple_apples.jpg')
+        self.img_bgr = cv2.imread('../images/multiple_apples.jpg')
 
-        if self.img_rgb is not None:
-            self.width = self.img_rgb.shape[1]
-            self.height = self.img_rgb.shape[0]
+        if self.img_bgr is not None:
+            self.width = self.img_bgr.shape[1]
+            self.height = self.img_bgr.shape[0]
         else:
             print(f"[INFO] Could not load image")
 
@@ -44,13 +44,16 @@ class DetectionAlgorithm:
         Function that performs the actual detection of circles inside a given image.
         """
         # grayscale
-        img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
+        img_gray = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2GRAY)
+
+        # convert to HSV
+        img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
         self.height, self.width = img_gray.shape
 
-        output = self.img_rgb.copy()
+        output = self.img_bgr.copy()
 
-        # detect circles in the image
+        # detect circles in the images
         circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1,
                                    minDist=58,
                                    param1=90,
