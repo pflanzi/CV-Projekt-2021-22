@@ -11,12 +11,12 @@ class DetectionAlgorithm:
         # self.img_rgb = cv2.imread('images/six_apples.jpg')
         # self.img_rgb = cv2.imread('images/3_apples.jpg')
         # self.img_rgb = cv2.imread('images/multiple_apples.jpg')
-        self.img_rgb = cv2.imread('images/fruit-vocabulary-words.jpg')
-        self.hsv = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2HSV)
+        self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
+        self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
     def detect(self):
 
-        output = self.img_rgb.copy()
+        output = self.img_bgr.copy()
         # detect circles in the image
         circles = cv2.HoughCircles(self.hsv[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
                                    param1=15,
