@@ -8,60 +8,37 @@ import glob
 class DetectionAlgorithm:
 
     def __init__(self):
-        self.width = 0
-        self.height = 0
-        self.img_rgb = cv2.imread('images/multiple_apples.jpg')
-        self.image_list = []
-        for picture in glob.glob('images/single_apples/*'):
-            image = cv2.imread(picture)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            self.image_list.append(image)
+        # self.img_rgb = cv2.imread('images/six_apples.jpg')
+        # self.img_rgb = cv2.imread('images/3_apples.jpg')
+        # self.img_rgb = cv2.imread('images/multiple_apples.jpg')
+        self.img_rgb = cv2.imread('images/fruit-vocabulary-words.jpg')
+        self.hsv = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2HSV)
 
-    def detect(self, img_template):
-        for scale_percent in tqdm(range(20, 150, 10)):
-            self.width = int(img_template.shape[1] * scale_percent / 100)
-            self.height = int(img_template.shape[0] * scale_percent / 100)
-            dim = (self.width, self.height)
+    def detect(self):
 
-            # resize image
-            template = cv2.resize(img_template, dim, interpolation=cv2.INTER_AREA)
+        output = self.img_rgb.copy()
+        # detect circles in the image
+        circles = cv2.HoughCircles(self.hsv[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
+                                   param1=15,
+                                   param2=22,
+                                   minRadius=80,
+                                   maxRadius=105)
+        # ensure at least some circles were found
+        if circles is not None:
+            # convert the (x, y) coordinates and radius of the circles to integers
+            circles = np.round(circles[0, :]).astype("int")
+            # loop over the (x, y) coordinates and radius of the circles
+            for (x, y, r) in circles:
+                # draw the circle in the output image, then draw a rectangle
+                # corresponding to the center of the circle
 
-            # grayscale
-            img_gray = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2GRAY)
-
-            th, tw = template.shape
-            ih, iw = img_gray.shape
-
-            # Template bigger than original Picture -> exit
-            if th >= ih or tw >= iw:
-                break
-
-            output = self.img_rgb.copy()
-            # detect circles in the image
-            circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 58,
-                                       param1=90,
-                                       param2=45,
-                                       minRadius=65,
-                                       maxRadius=105)
-            # ensure at least some circles were found
-            if circles is not None:
-                # convert the (x, y) coordinates and radius of the circles to integers
-                circles = np.round(circles[0, :]).astype("int")
-                # loop over the (x, y) coordinates and radius of the circles
-                for (x, y, r) in circles:
-                    # draw the circle in the output image, then draw a rectangle
-                    # corresponding to the center of the circle
-                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                    cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                cv2.imshow("Test", output)
-                # cv2.imshow("Gray", img_gray)
-                break
+                cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                cv2.putText(output, "Apple", (x, y-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+            cv2.imshow("Test", output)
 
     def main(self):
-        # for image in self.image_list:
-        #     self.detect(image)
-        self.detect(self.image_list[0])
-        # cv2.imshow("Apple Detection", self.img_rgb)
+        self.detect()
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
