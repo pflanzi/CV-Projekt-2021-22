@@ -52,7 +52,10 @@ def getDominantColor(roi):
         count = cv2.countNonZero(grey_mask)
         pixels_per_color.append(count)
 
-    if pixels_per_color[0] > 3000 or pixels_per_color[1] > 3000:
+    print(f"roi {roi.shape}")
+    # TODO: Change Threshold to be dynamic
+    if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / 3) or \
+            pixels_per_color[1] > ((roi.shape[0] * roi.shape[1]) / 3):
         return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
     else:
         return None
@@ -71,18 +74,15 @@ class DetectionAlgorithm:
                 template image width
             height : int
                 template image height
-            img_rgb : numpy.ndarray
+            img_bgr : numpy.ndarray
                 stores a colored image (channels are in BGR order)
         """
 
-        # self.img_rgb = cv2.imread('images/six_apples.jpg')
-        self.img_rgb = cv2.imread('images/six_apples.jpg')
-        # self.img_rgb = cv2.imread('images/3_apples.jpg')
-        # self.img_rgb = cv2.imread('images/multiple_apples.jpg')
-        self.img_bgr = cv2.imread('../images/fruit-vocabulary-words.jpg')
+        self.img_bgr = cv2.imread('images/six_apples.jpg')
+        # self.img_bgr = cv2.imread('images/3_apples.jpg')
+        # self.img_bgr = cv2.imread('images/multiple_apples.jpg')
+        # self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
-        # self.img_rgb = cv2.imread('images/fruit-vocabulary-words.jpg')
-        self.hsv = cv2.cvtColor(self.img_rgb, cv2.COLOR_BGR2HSV)
 
     def detect(self):
         """
@@ -106,7 +106,7 @@ class DetectionAlgorithm:
             # loop over the (x, y) coordinates and radius of the circles
             for (x, y, r) in circles:
 
-                roi = self.img_rgb[int(y - r / 2):int(y + r / 2), int(x - r / 2):int(x + r / 2)]
+                roi = self.img_bgr[int(y - r / 2):int(y + r / 2), int(x - r / 2):int(x + r / 2)]
                 color = getDominantColor(roi=roi)
 
                 # draw the circle in the output image, then draw a rectangle
