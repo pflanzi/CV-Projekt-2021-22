@@ -1,12 +1,38 @@
+# ----- imports ----- #
 import cv2
 import numpy as np
 from tqdm import tqdm
 import glob
 
 
+# ----- To-Do-List ----- #
+# TODO: add documentation
+# TODO: check for obsolete code pieces
+# TODO: check formatting
+# TODO: adjust Hough Circle detection
+# TODO: add another processing step to filter / improve results
+# TODO: connect this code to the GUI
+
+# ----- class, functions, variables ----- #
 class DetectionAlgorithm:
+    """
+    Detection Algorithm class containing functions
+    for detecting and counting objects in a given image
+    """
 
     def __init__(self):
+        """
+        Class constructor initializing the following class attributes:
+            width : int
+                template image width
+            height : int
+                template image height
+            img_rgb : numpy.ndarray
+                stores a colored image (channels are in BGR order)
+            image_list : list
+                stores template images
+        """
+
         self.width = 0
         self.height = 0
         self.img_rgb = cv2.imread('images/multiple_apples.jpg')
@@ -17,6 +43,10 @@ class DetectionAlgorithm:
             self.image_list.append(image)
 
     def detect(self, img_template):
+        """
+        Function that performs the actual detection of circles inside a given image.
+        :param img_template: ???
+        """
         for scale_percent in tqdm(range(20, 150, 10)):
             self.width = int(img_template.shape[1] * scale_percent / 100)
             self.height = int(img_template.shape[0] * scale_percent / 100)
@@ -36,27 +66,35 @@ class DetectionAlgorithm:
                 break
 
             output = self.img_rgb.copy()
+
             # detect circles in the image
             circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 58,
                                        param1=90,
                                        param2=45,
                                        minRadius=65,
                                        maxRadius=105)
+
             # ensure at least some circles were found
             if circles is not None:
                 # convert the (x, y) coordinates and radius of the circles to integers
                 circles = np.round(circles[0, :]).astype("int")
+
                 # loop over the (x, y) coordinates and radius of the circles
                 for (x, y, r) in circles:
                     # draw the circle in the output image, then draw a rectangle
                     # corresponding to the center of the circle
                     cv2.circle(output, (x, y), r, (0, 255, 0), 4)
                     cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+
                 cv2.imshow("Test", output)
                 # cv2.imshow("Gray", img_gray)
                 break
 
     def main(self):
+        """
+        TODO: add some description here
+        :return:
+        """
         # for image in self.image_list:
         #     self.detect(image)
         self.detect(self.image_list[0])
@@ -65,7 +103,9 @@ class DetectionAlgorithm:
         cv2.destroyAllWindows()
 
 
+# ----- main program ----- #
 program = DetectionAlgorithm()
 program.main()
+
 
 # cv2.imwrite('images/apples_found.jpg', self.img_rgb)
