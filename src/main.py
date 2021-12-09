@@ -1,8 +1,5 @@
 import cv2
 import numpy as np
-from scipy import ndimage
-from tqdm import tqdm
-import glob
 
 
 class DetectionAlgorithm:
@@ -11,7 +8,7 @@ class DetectionAlgorithm:
         # self.img_rgb = cv2.imread('images/six_apples.jpg')
         # self.img_rgb = cv2.imread('images/3_apples.jpg')
         # self.img_rgb = cv2.imread('images/multiple_apples.jpg')
-        self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
+        self.img_bgr = cv2.imread('../images/fruit-vocabulary-words.jpg')
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
     def detect(self):
@@ -45,5 +42,3 @@ class DetectionAlgorithm:
 
 program = DetectionAlgorithm()
 program.main()
-
-# cv2.imwrite('images/apples_found.jpg', self.img_rgb)
