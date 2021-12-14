@@ -22,6 +22,12 @@ COLOR_RANGES_HSV = {
 
 
 def getMask(frame, color):
+    """
+
+    :param frame:
+    :param color:
+    :return:
+    """
     blurred_frame = cv2.GaussianBlur(frame, (3, 3), 0)
     hsv_frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2HSV)
 
@@ -36,6 +42,11 @@ def getMask(frame, color):
 
 
 def getDominantColor(roi):
+    """
+
+    :param roi:
+    :return:
+    """
     roi = np.float32(roi)
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
