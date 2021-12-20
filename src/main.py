@@ -16,8 +16,8 @@ import numpy as np
 COLOR_NAMES = ["redgreen", "red"]
 
 COLOR_RANGES_HSV = {
-    "redgreen": [(0, 10, 10), (60, 255, 255)],
-    "red": [(170, 10, 10), (180, 255, 255)]
+    "redgreen": [(0, 25, 25), (60, 255, 255)],
+    "red": [(170, 25, 25), (180, 255, 255)]
 }
 
 
@@ -43,9 +43,9 @@ def getMask(frame, color):
 
 def getDominantColor(roi):
     """
-
-    :param roi:
-    :return:
+    Finds the dominant color in a ROI
+    :param roi: given ROI (region of interest)
+    :return: dominant colour
     """
     roi = np.float32(roi)
 
@@ -89,10 +89,11 @@ class DetectionAlgorithm:
                 stores a colored image (channels are in BGR order)
         """
 
-        self.img_bgr = cv2.imread('../images/test/six_apples.jpg')
+        # self.img_bgr = cv2.imread('../images/test/six_apples.jpg')
         # self.img_bgr = cv2.imread('images/3_apples.jpg')
         # self.img_bgr = cv2.imread('images/multiple_apples.jpg')
         # self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
+        self.img_bgr = cv2.imread('../images/fruits-360_dataset (apples only)/fruits-360/test-multiple_fruits/apple_pear.jpg')
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
     def detect(self):
