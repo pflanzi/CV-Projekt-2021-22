@@ -13,11 +13,11 @@ import numpy as np
 # TODO: connect this code to the GUI
 
 # ----- class, functions, variables ----- #
-COLOR_NAMES = ["red", "red "]
+COLOR_NAMES = ["redgreen", "red"]
 
 COLOR_RANGES_HSV = {
-    "red": [(0, 50, 10), (10, 255, 255)],
-    "red ": [(170, 50, 10), (180, 255, 255)]
+    "redgreen": [(0, 10, 10), (60, 255, 255)],
+    "red": [(170, 10, 10), (180, 255, 255)]
 }
 
 
@@ -89,7 +89,7 @@ class DetectionAlgorithm:
                 stores a colored image (channels are in BGR order)
         """
 
-        self.img_bgr = cv2.imread('images/six_apples.jpg')
+        self.img_bgr = cv2.imread('../images/test/six_apples.jpg')
         # self.img_bgr = cv2.imread('images/3_apples.jpg')
         # self.img_bgr = cv2.imread('images/multiple_apples.jpg')
         # self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
@@ -122,7 +122,7 @@ class DetectionAlgorithm:
 
                 # draw the circle in the output image, then draw a rectangle
                 # corresponding to the center of the circle
-                if color == "red" or color == "red ":
+                if color == "redgreen" or color == "red":
                     cv2.circle(output, (x, y), r, (0, 255, 0), 4)
                     cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
                     cv2.putText(output, "Apple", (x, y-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
