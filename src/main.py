@@ -21,7 +21,7 @@ COLOR_RANGES_HSV = {
 }
 
 
-def getMask(frame, color):
+def get_mask(frame, color):
     """
 
     :param frame:
@@ -41,7 +41,7 @@ def getMask(frame, color):
     return color_mask
 
 
-def getDominantColor(roi):
+def get_color(roi):
     """
     Finds the dominant color in a ROI
     :param roi: given ROI (region of interest)
@@ -58,7 +58,7 @@ def getDominantColor(roi):
 
     pixels_per_color = []
     for color in COLOR_NAMES:
-        mask = getMask(res2, color)
+        mask = get_mask(res2, color)
         grey_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         count = cv2.countNonZero(grey_mask)
         pixels_per_color.append(count)
@@ -119,7 +119,7 @@ class DetectionAlgorithm:
             for (x, y, r) in circles:
 
                 roi = self.img_bgr[int(y - r / 2):int(y + r / 2), int(x - r / 2):int(x + r / 2)]
-                color = getDominantColor(roi=roi)
+                color = get_color(roi=roi)
 
                 # draw the circle in the output image, then draw a rectangle
                 # corresponding to the center of the circle
