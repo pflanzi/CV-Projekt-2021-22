@@ -1,7 +1,7 @@
 # ----- import ----- #
 import cv2
+import imutils
 import numpy as np
-
 
 # ----- To-Do-List ----- #
 # TODO: add documentation
@@ -16,8 +16,8 @@ import numpy as np
 COLOR_NAMES = ["redgreen", "red"]
 
 COLOR_RANGES_HSV = {
-    "redgreen": [(0, 25, 25), (60, 255, 255)],
-    "red": [(170, 25, 25), (180, 255, 255)]
+    "redgreen": [(0, 50, 10), (60, 255, 255)],
+    "red": [(170, 50, 10), (180, 255, 255)]
 }
 
 
@@ -81,25 +81,55 @@ class DetectionAlgorithm:
     def __init__(self):
         """
         Class constructor initializing the following class attributes:
-            width : int
-                template image width
-            height : int
-                template image height
             img_bgr : numpy.ndarray
                 stores a colored image (channels are in BGR order)
+            hsv : numpy.ndarray
+                stores a colored HSV image
+            dim : tuple
+                dimensions of the BGR image: (rows, columns, channels)
         """
 
-        # self.img_bgr = cv2.imread('../images/test/six_apples.jpg')
-        # self.img_bgr = cv2.imread('images/3_apples.jpg')
-        # self.img_bgr = cv2.imread('images/multiple_apples.jpg')
-        # self.img_bgr = cv2.imread('images/fruit-vocabulary-words.jpg')
-        self.img_bgr = cv2.imread('../images/fruits-360_dataset (apples only)/fruits-360/test-multiple_fruits/apple_pear.jpg')
+        self.img_bgr = None
+        self.hsv = None
+        self.dim = (0, 0, 0)
+
+    def read_img(self, path):
+        """
+        Reads the image from a given path and resizes it if necessary.
+        :param path: system path to the image
+        """
+        if type(path) is not str:
+            print('The given path must be of type str!')
+
+        self.img_bgr = cv2.imread(path)
+
+        self.dim = self.img_bgr.shape  # dim = rows, columns, channels
+
+        while self.dim[1] > 1000 or self.dim[0] > 1000:
+            new_width = int(self.dim[1] * 0.9)
+
+            self.img_bgr = imutils.resize(self.img_bgr, width=new_width)
+
+            self.dim = self.img_bgr.shape
+
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-    def detect(self):
+    def detect(self, path):
         """
         Function that performs the actual detection of circles inside a given image.
+        :param path: image path
         """
+
+        try:
+            self.read_img(path)
+
+        except AttributeError as a:
+            print(f'{a}. Please enter a valid image path.')
+            exit()
+
+        except TypeError as t:
+            print(f'{t}. Please enter a valid image path.')
+            exit()
 
         output = self.img_bgr.copy()
         # detect circles in the image
@@ -126,18 +156,19 @@ class DetectionAlgorithm:
                 if color == "redgreen" or color == "red":
                     cv2.circle(output, (x, y), r, (0, 255, 0), 4)
                     cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                    cv2.putText(output, "Apple", (x, y-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+                    cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                 else:
                     print("Not red")
             cv2.imshow("Test", output)
 
     def main(self):
         """
-        TODO: add some description here
-        :return:
+        Main function, calls detect()-function to perform detection
         """
 
-        self.detect()
+        image_path = 'test'
+
+        self.detect(image_path)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
