@@ -1,15 +1,15 @@
-# ----- import ----- #
+# ----- imports ----- #
 import cv2
 import imutils
 import numpy as np
 
+
 # ----- To-Do-List ----- #
-# TODO: add documentation
-# TODO: check for obsolete code pieces
-# TODO: check formatting
+# TODO: add documentation, check for obsolete code pieces, check formatting
+
 # TODO: adjust Hough Circle detection (overlapping apples)
-# TODO: get more test images
 # TODO: add another processing step to filter / improve results
+
 # TODO: connect this code to the GUI
 
 # ----- class, functions, variables ----- #
@@ -23,10 +23,10 @@ COLOR_RANGES_HSV = {
 
 def get_mask(frame, color):
     """
-
-    :param frame:
-    :param color:
-    :return:
+    Creates a mask from HSV image which will later be used to check for certain colors in a ROI
+    :param frame: ROI borders
+    :param color: color to check for  # TODO: what is the parameter exactly?
+    :return: colored mask
     """
     blurred_frame = cv2.GaussianBlur(frame, (3, 3), 0)
     hsv_frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2HSV)
