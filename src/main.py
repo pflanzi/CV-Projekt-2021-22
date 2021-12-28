@@ -5,7 +5,7 @@ import numpy as np
 
 
 # ----- To-Do-List ----- #
-# TODO: add documentation, check for obsolete code pieces, check formatting
+# TODO: add documentation, check for obsolete code pieces, check formatting => keep this until project is finished
 
 # TODO: adjust Hough Circle detection (overlapping apples)
 # TODO: add another processing step to filter / improve results
@@ -132,8 +132,12 @@ class DetectionAlgorithm:
             exit()
 
         output = self.img_bgr.copy()
+
+        # noise reduction
+        dn_img = cv2.fastNlMeansDenoisingColored(self.hsv, None, 10, 10, 7, 21)
+
         # detect circles in the image
-        circles = cv2.HoughCircles(self.hsv[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
+        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
                                    param1=25,
                                    param2=35,
                                    minRadius=30,
@@ -160,13 +164,16 @@ class DetectionAlgorithm:
                 else:
                     print("Not red")
             cv2.imshow("Test", output)
+        else:
+            print("No circles found.")
+            exit()
 
     def main(self):
         """
         Main function, calls detect()-function to perform detection
         """
 
-        image_path = 'test'
+        image_path = '../images/test/six_apples.jpg'
 
         self.detect(image_path)
         cv2.waitKey(0)
