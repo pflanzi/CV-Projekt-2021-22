@@ -92,10 +92,10 @@ class DetectionAlgorithm:
         output = self.img_bgr.copy()
         # detect circles in the image
         circles = cv2.HoughCircles(self.hsv[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
-                                   param1=25,
+                                   param1=20,
                                    param2=35,
                                    minRadius=30,
-                                   maxRadius=105)
+                                   maxRadius=100)
 
         # ensure at least some circles were found
         if circles is not None:
