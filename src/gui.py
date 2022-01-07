@@ -77,8 +77,8 @@ window = sg.Window('Analyzing pictures and counting objects',
                    location=(0, 0))
 
 # resizing the window to fullscreen without making the titlebar/toolbar disappear
-width = window.TKroot.winfo_screenwidth()
-height = window.TKroot.winfo_screenheight()
+width = window.TKroot.winfo_screenwidth() * 0.75
+height = window.TKroot.winfo_screenheight() * 0.75
 window.TKroot.geometry("%dx%d" % (width, height))
 
 # expanding empty container elements to adjust element position
