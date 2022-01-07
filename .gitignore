@@ -132,3 +132,6 @@ dmypy.json
 *.patch
 .idea/
 .idea
+
+/src/test.py
+/src/tmp.py
