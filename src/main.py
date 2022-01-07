@@ -13,11 +13,13 @@ import numpy as np
 # TODO: connect this code to the GUI
 
 # ----- class, functions, variables ----- #
-COLOR_NAMES = ["redgreen", "red"]
+COLOR_NAMES = ["redgreen", "red", "green", "yellow"]
 
 COLOR_RANGES_HSV = {
-    "redgreen": [(0, 50, 10), (60, 255, 255)],
-    "red": [(170, 50, 10), (180, 255, 255)]
+    "redgreen": [(0, 70, 70), (10, 255, 255)],
+    "red": [(170, 70, 70), (180, 255, 255)],
+    "green": [(36, 25, 25), (70, 255, 255)],
+    "yellow": [(22, 93, 0), (45, 255, 255)]
 }
 
 
@@ -50,9 +52,16 @@ def get_color(roi):
     roi = np.float32(roi)
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-    ret, label, center = cv2.kmeans(roi, 4, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    if len(roi) != 0:
+        ret, label, center = cv2.kmeans(roi, 4, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    else:
+        return None
 
-    center = np.uint8(center)
+    try:
+        center = np.uint8(center)
+    except TypeError as error:
+        print(error)
+        return None
     res = center[label.flatten()]
     res2 = res.reshape(roi.shape)
 
@@ -64,10 +73,16 @@ def get_color(roi):
         pixels_per_color.append(count)
 
     print(f"roi {roi.shape}")
-    # TODO: Change Threshold to be dynamic
-    if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / 3) or \
-            pixels_per_color[1] > ((roi.shape[0] * roi.shape[1]) / 3):
-        return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
+    # TODO: pixel_threshold and /3 through gui?
+    # Filter every circle that is not at least 1/3 red and should not be completely red so tomatoes for example are not
+    # detected
+    # pixel per color checks for the 2 red thresholds against the content of the circles
+    thresh = pixels_per_color[0] + pixels_per_color[1] + pixels_per_color[2] + pixels_per_color[3]
+    pixel_threshold = 0.7
+    if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / 3) or pixels_per_color[1] > ((roi.shape[0] * roi.shape[1]) / 3):
+        if pixels_per_color[0] < ((roi.shape[0] * roi.shape[1]) / 1.2) and pixels_per_color[1] < ((roi.shape[0] * roi.shape[1]) / 1.2):
+            if thresh > ((roi.shape[0] * roi.shape[1]) * pixel_threshold):
+                return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
     else:
         return None
 
@@ -138,9 +153,9 @@ class DetectionAlgorithm:
 
         # detect circles in the image
         circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
-                                   param1=25,
-                                   param2=35,
-                                   minRadius=30,
+                                   param1=95,
+                                   param2=20,
+                                   minRadius=45,
                                    maxRadius=105)
 
         # ensure at least some circles were found
@@ -149,20 +164,25 @@ class DetectionAlgorithm:
             # convert the (x, y) coordinates and radius of the circles to integers
             circles = np.round(circles[0, :]).astype("int")
 
+            avrg_rad = 0
+            for (x, y, r) in circles:
+                avrg_rad += r
+            avrg = avrg_rad / len(circles)
+
             # loop over the (x, y) coordinates and radius of the circles
             for (x, y, r) in circles:
-
                 roi = self.img_bgr[int(y - r / 2):int(y + r / 2), int(x - r / 2):int(x + r / 2)]
                 color = get_color(roi=roi)
 
                 # draw the circle in the output image, then draw a rectangle
                 # corresponding to the center of the circle
-                if color == "redgreen" or color == "red":
-                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                    cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
-                    cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
-                else:
-                    print("Not red")
+                if (avrg * 0.7) < r < (avrg * 1.3):
+                    if color == "redgreen" or color == "red":
+                        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                        cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+                    else:
+                        print("Not red")
             cv2.imshow("Test", output)
         else:
             print("No circles found.")
@@ -173,7 +193,8 @@ class DetectionAlgorithm:
         Main function, calls detect()-function to perform detection
         """
 
-        image_path = '../images/test/six_apples.jpg'
+        image_path = 'images/test/apple_tray.jpg'
+        # image_path = 'images/fruits-360_dataset (apples only)/fruits-360/test-multiple_fruits/apple_apricot_nectarine_peach_peach(flat)_pomegranate_pear_plum.jpg'
 
         self.detect(image_path)
         cv2.waitKey(0)
