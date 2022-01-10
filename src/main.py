@@ -189,23 +189,20 @@ class DetectionAlgorithm:
                         cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                     else:
                         continue
-            cv2.imshow("Test", output)
+            # cv2.imshow("Test", output)
+
+            return output
         else:
             print("No circles found.")
             exit()
 
-    def main(self):
+    def main(self, path):
         """
         Main function, calls detect()-function to perform detection
         """
 
-        image_path = 'images/test/six_apples.jpg'
-        # image_path = 'images/fruits-360_dataset (apples only)/fruits-360/test-multiple_fruits/apple_apricot_nectarine_peach_peach(flat)_pomegranate_pear_plum.jpg'
+        result = self.detect(path)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
-        self.detect(image_path)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
-program = DetectionAlgorithm()
-program.main()
+        return result
