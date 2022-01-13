@@ -1,70 +1,92 @@
 import cv2
 import numpy as np
 import imutils
-from scipy import ndimage
-from skimage.feature import peak_local_max
-from skimage.segmentation import watershed
 
-img = cv2.imread('../images/test/100_apples.jpg')
-img = imutils.resize(img, width=640)
-# img = cv2.pyrMeanShiftFiltering(img, 21, 51)
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-lower_1 = np.array([0, 50, 20])
-upper_1 = np.array([80, 255, 255])
-mask1 = cv2.inRange(hsv, lower_1, upper_1)
+def kmeans_color_quantization(image, clusters=8, rounds=1):
+    h, w = image.shape[:2]
+    samples = np.zeros([h*w,3], dtype=np.float32)
+    count = 0
 
-lower_2 = np.array([160, 50, 20])
-upper_2 = np.array([179, 255, 255])
-mask2 = cv2.inRange(hsv, lower_2, upper_2)
+    for x in range(h):
+        for y in range(w):
+            samples[count] = image[x][y]
+            count += 1
 
-thresh = mask1 + mask2
+    compactness, labels, centers = cv2.kmeans(samples,
+            clusters,
+            None,
+            (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10000, 0.0001),
+            rounds,
+            cv2.KMEANS_RANDOM_CENTERS)
+
+    centers = np.uint8(centers)
+    res = centers[labels.flatten()]
+    return res.reshape(image.shape)
+
+
+def mask(image, clusters=8, rounds=1):
+    lower_red_low = (0, 77, 115)
+    lower_red_high = (5, 255, 255)
+    higher_red_low = (160, 89, 128)
+    higher_red_high = (180, 255, 255)
+    raw_low = (28, 89, 128)
+    raw_high = (35, 255, 255)
+
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    mask_lower_red = cv2.inRange(image_hsv, lower_red_low, lower_red_high)
+    mask_higher_red = cv2.inRange(image_hsv, higher_red_low, higher_red_high)
+    mask_raw = cv2.inRange(image_hsv, raw_low, raw_high)
+
+    mask = mask_lower_red + mask_higher_red + mask_raw
+
+    return mask
+
+
+# Load image, resize smaller, perform kmeans, grayscale
+# Apply Gaussian blur, Otsu's threshold
+image = cv2.imread('../images/test/10_apples.jpg')
+# image = imutils.resize(image, width=600)
+kmeans = mask(image, clusters=3)
+blur = cv2.GaussianBlur(kmeans, (9, 9), 0)
+thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+# Filter out contours not circle
+cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+for c in cnts:
+    peri = cv2.arcLength(c, True)
+    approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+    if len(approx) < 4:
+        cv2.drawContours(thresh, [c], -1, 0, -1)
+
+# Morph close
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
-thresh = cv2.erode(thresh, kernel)
+close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
-D = ndimage.distance_transform_edt(thresh)
-localMax = peak_local_max(D, indices=False, min_distance=20,
-                          labels=thresh)
-
-markers = ndimage.label(localMax, structure=np.ones((3, 3)))[0]
-labels = watershed(-D, markers, mask=thresh)
-print("[INFO] {} unique segments found".format(len(np.unique(labels)) - 1))
-
-circles = []
-circles_r = []
-
-for label in np.unique(labels):
-    if label == 0:
-        continue
-    average = 0
-
-    mask = np.zeros(gray.shape, dtype="uint8")
-    mask[labels == label] = 255
-
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    c = max(cnts, key=cv2.contourArea)
-
-    # TODO: Check for color threshold like in main
+# Find contours and draw minimum enclosing circles 
+# using contour area as filter
+approximated_radius = 63
+cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+for c in cnts:
+    area = cv2.contourArea(c)
+    x, y, w, h = cv2.boundingRect(c)
     ((x, y), r) = cv2.minEnclosingCircle(c)
-    circles.append(((x, y), r))
-    circles_r.append(r)
+    cv2.circle(image, (int(x), int(y)), int(r), (36, 255, 12), 2)
 
-'''r = sum(circles_r)/(len(np.unique(labels)) - 1)
-print(sorted(circles_r))'''
-for (x, y), r in circles:
-    if 20 < r < 200:
-        cv2.circle(img, (int(x), int(y)), int(r), (0, 255, 0), 2)
-        cv2.putText(img, "{}".format(round(r)), (int(x) - 10, int(y)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+    # # Large circles
+    # if area > 6000 and area < 15000:
+    #     ((x, y), r) = cv2.minEnclosingCircle(c)
+    #     cv2.circle(image, (int(x), int(y)), int(r), (36, 255, 12), 2)
+    # # Small circles
+    # elif area > 1000 and area < 6000:
+    #     ((x, y), r) = cv2.minEnclosingCircle(c)
+    #     cv2.circle(image, (int(x), int(y)), approximated_radius, (200, 255, 12), 2)
 
+cv2.imshow('kmeans', kmeans)
 cv2.imshow('thresh', thresh)
-# cv2.imshow('gray', gray)
-cv2.imshow('img', img)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+cv2.imshow('close', close)
+cv2.imshow('image', image)
+cv2.waitKey()

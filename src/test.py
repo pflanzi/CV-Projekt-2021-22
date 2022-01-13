@@ -3,70 +3,78 @@ import numpy as np
 import imutils
 
 
-# Kmeans color segmentation
-def kmeans_color_quantization(image, clusters=8, rounds=1):
-    h, w = image.shape[:2]
-    samples = np.zeros([h * w, 3], dtype=np.float32)
-    count = 0
+def detect(path):
+    # Defining the color ranges to be filtered.
+    # The following ranges should be used on HSV domain image.
+    # lower_red_low = (0, 145, 163)
+    # lower_red_high = (8, 255, 255)
+    # higher_red_low = (175, 145, 163)
+    # higher_red_high = (180, 255, 255)
+    # raw_low = (25, 115, 128)
+    # raw_high = (38, 255, 255)
 
-    for x in range(h):
-        for y in range(w):
-            samples[count] = image[x][y]
-            count += 1
+    lower_red_low = (0, 77, 115)
+    lower_red_high = (5, 255, 255)
+    higher_red_low = (160, 89, 128)
+    higher_red_high = (180, 255, 255)
+    raw_low = (28, 89, 128)
+    raw_high = (35, 255, 255)
 
-    compactness, labels, centers = cv2.kmeans(samples,
-                                              clusters,
-                                              None,
-                                              (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10000, 0.0001),
-                                              rounds,
-                                              cv2.KMEANS_RANDOM_CENTERS)
+    image_bgr = cv2.imread(path)
+    image = image_bgr.copy()
+    image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
 
-    centers = np.uint8(centers)
-    res = centers[labels.flatten()]
-    return res.reshape((image.shape))
+    mask_lower_red = cv2.inRange(image_hsv, lower_red_low, lower_red_high)
+    mask_higher_red = cv2.inRange(image_hsv, higher_red_low, higher_red_high)
+    mask_raw = cv2.inRange(image_hsv, raw_low, raw_high)
 
+    mask = mask_lower_red + mask_higher_red + mask_raw
 
-# Load image, resize smaller, perform kmeans, grayscale
-# Apply Gaussian blur, Otsu's threshold
-image = cv2.imread('../images/test/six_apples.jpg')
-image = imutils.resize(image, width=600)
-kmeans = kmeans_color_quantization(image, clusters=3)
-gray = cv2.cvtColor(kmeans, cv2.COLOR_BGR2GRAY)
-blur = cv2.GaussianBlur(gray, (9, 9), 0)
-thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    blur = cv2.GaussianBlur(mask, (5, 5), 0)
+    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    kernel = np.ones((5, 5), np.uint8)
+    erosion = cv2.erode(thresh, kernel, iterations=3)
+    dilation = cv2.dilate(erosion, kernel, iterations=2)
 
-# Filter out contours not circle
-cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-for c in cnts:
-    peri = cv2.arcLength(c, True)
-    approx = cv2.approxPolyDP(c, 0.04 * peri, True)
-    if len(approx) < 4:
-        cv2.drawContours(thresh, [c], -1, 0, -1)
+    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    # close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=3)
 
-# Morph close
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=3)
-
-# Find contours and draw minimum enclosing circles 
-# using contour area as filter
-approximated_radius = 63
-cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-for c in cnts:
-    area = cv2.contourArea(c)
-    x, y, w, h = cv2.boundingRect(c)
-    # Large circles
-    if area > 6000 and area < 15000:
+    cnts, _ = cv2.findContours(dilation.copy(), cv2.RETR_EXTERNAL,
+                               cv2.CHAIN_APPROX_SIMPLE)
+    c_num = 0
+    circles = []
+    for i, c in enumerate(cnts):
+        # draw a circle enclosing the object
         ((x, y), r) = cv2.minEnclosingCircle(c)
-        cv2.circle(image, (int(x), int(y)), int(r), (36, 255, 12), 2)
-    # Small circles
-    elif area > 1000 and area < 6000:
-        ((x, y), r) = cv2.minEnclosingCircle(c)
-        cv2.circle(image, (int(x), int(y)), approximated_radius, (200, 255, 12), 2)
+        circles.append(((x, y), r))
 
-cv2.imshow('kmeans', kmeans)
-cv2.imshow('thresh', thresh)
-cv2.imshow('close', close)
-cv2.imshow('image', image)
-cv2.waitKey()
+    for ((x, y), r) in circles:
+        if 50 < r < 100:
+            c_num += 1
+            cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
+            cv2.putText(image, "#{}".format(c_num), (int(x) - 10, int(y)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+
+        else:
+            continue
+    cv2.imshow("Mask", mask)
+    cv2.imshow("Thresh", thresh)
+    cv2.imshow("Erosion", erosion)
+    cv2.imshow("Dilation", dilation)
+    cv2.imshow("Detected Apples", image)
+
+
+image_path = [
+    '../images/test/10_apples.jpg',
+    '../images/test/3_apples.jpg',
+    '../images/test/7_apples.jpg',
+    '../images/test/six_apples.jpg',
+    '../images/test/apple_test1.png',
+    '../images/test/apple_tray1.jpg',
+    '../images/test/apple_basket.jpg'
+]
+for image in image_path:
+    detect(image)
+    # cv2.imshow("HSV Image", image_hsv)
+    # cv2.imshow("Mask image", mask)
+    cv2.waitKey(0)

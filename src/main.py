@@ -51,7 +51,7 @@ def get_color(roi):
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     if len(roi) != 0:
-        ret, label, center = cv2.kmeans(roi, 10, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        ret, label, center = cv2.kmeans(roi, 5, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
     else:
         return None
 
@@ -75,15 +75,20 @@ def get_color(roi):
     # detected
     # pixel per color checks for the 2 red thresholds against the content of the circles
     thresh = pixels_per_color[0] + pixels_per_color[1] + pixels_per_color[2]
-    pixel_threshold = 0.95
-    red_threshold = 2
+    pixel_threshold = 0.5
+    red_threshold = 1000
 
+    # TODO: Change return for eg error handling
     if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / red_threshold) or pixels_per_color[1] > (
             (roi.shape[0] * roi.shape[1]) / red_threshold):
         if pixels_per_color[0] < ((roi.shape[0] * roi.shape[1]) / 1.2) and pixels_per_color[1] < (
                 (roi.shape[0] * roi.shape[1]) / 1.2):
             if thresh > ((roi.shape[0] * roi.shape[1]) * pixel_threshold):
                 return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
+            else:
+                return None
+        else:
+            return None
     else:
         return None
 
@@ -149,14 +154,20 @@ class DetectionAlgorithm:
 
         output = self.img_bgr.copy()
 
-        # noise reduction
-        dn_img = cv2.fastNlMeansDenoisingColored(self.hsv, None, 10, 10, 7, 21)
+        # noise reduction and Blur
+        dn_img = cv2.GaussianBlur(
+            src=self.hsv,
+            ksize=(13, 13),
+            sigmaX=3,
+            sigmaY=3)
+        dn_img = cv2.fastNlMeansDenoisingColored(dn_img, None, 10, 10, 7, 21)
 
         # detect circles in the image
-        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
-                                   param1=95,
+        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1,
+                                   minDist=90,
+                                   param1=90,
                                    param2=20,
-                                   minRadius=45,
+                                   minRadius=50,
                                    maxRadius=105)
 
         # ensure at least some circles were found
@@ -168,12 +179,8 @@ class DetectionAlgorithm:
             avrg_rad = []
             for (x, y, r) in circles:
                 avrg_rad.append(r)
-            avrg_rad = sorted(avrg_rad)
 
-            # Slicing 20% off of the circles to avoid exceptional bit or small circles messing up calculation
-            # getting the average of all circles and accept all within a threshold
-            l = round(len(avrg_rad)*0.2)
-            avrg = sum(avrg_rad[l:-l]) / len(circles[l:-l])
+            avrg = sum(avrg_rad) / len(circles)
 
             # loop over the (x, y) coordinates and radius of the circles
             for (x, y, r) in circles:
@@ -198,13 +205,16 @@ class DetectionAlgorithm:
         """
         Main function, calls detect()-function to perform detection
         """
-
-        image_path = 'images/test/six_apples.jpg'
-        # image_path = 'images/fruits-360_dataset (apples only)/fruits-360/test-multiple_fruits/apple_apricot_nectarine_peach_peach(flat)_pomegranate_pear_plum.jpg'
-
-        self.detect(image_path)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        image_path = [
+            # 'images/test/apple_tray.jpg',
+            # 'images/test/3_apples.jpg',
+            # 'images/test/six_apples.jpg',
+            'images/test/10_apples.jpg',
+        ]
+        for image in image_path:
+            self.detect(image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 
 program = DetectionAlgorithm()
