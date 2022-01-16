@@ -62,7 +62,7 @@ options = [
 
 # ------ picture area ------ #
 pic = [
-    [Sg.Image('../images/test/Placeholder.svg', key='picture', pad=(5, (3, 10)))],
+    [Sg.Image('../images/Placeholder.svg', key='picture', pad=(5, (3, 10)))],
     [Sg.Text(' ', key='path', font=('Ubuntu', 11, 'italic'), text_color='#919191')],
     [
         Sg.Text('Counted objects: ', pad=(5, 25), font=('Ubuntu', 14, 'bold')),

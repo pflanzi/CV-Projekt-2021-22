@@ -51,7 +51,7 @@ def get_color(roi):
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     if len(roi) != 0:
-        ret, label, center = cv2.kmeans(roi, 5, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        ret, label, center = cv2.kmeans(roi, 10, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
     else:
         return None
 
@@ -75,20 +75,15 @@ def get_color(roi):
     # detected
     # pixel per color checks for the 2 red thresholds against the content of the circles
     thresh = pixels_per_color[0] + pixels_per_color[1] + pixels_per_color[2]
-    pixel_threshold = 0.5
-    red_threshold = 1000
+    pixel_threshold = 0.95
+    red_threshold = 2
 
-    # TODO: Change return for eg error handling
     if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / red_threshold) or pixels_per_color[1] > (
             (roi.shape[0] * roi.shape[1]) / red_threshold):
         if pixels_per_color[0] < ((roi.shape[0] * roi.shape[1]) / 1.2) and pixels_per_color[1] < (
                 (roi.shape[0] * roi.shape[1]) / 1.2):
             if thresh > ((roi.shape[0] * roi.shape[1]) * pixel_threshold):
                 return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
-            else:
-                return None
-        else:
-            return None
     else:
         return None
 
@@ -135,16 +130,11 @@ class DetectionAlgorithm:
 
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-    def detect(self, path, min_radius, max_radius):
+    def detect(self, path):
         """
         Function that performs the actual detection of circles inside a given image.
         :param path: image path
-        :param min_radius: min radius of the enclosing circle
-        :param max_radius: max radius of the enclosing circle
-        :return: image with detected apples and enclosing circles
         """
-
-        # TODO: add using min and max radius to this function
 
         try:
             self.read_img(path)
@@ -159,20 +149,14 @@ class DetectionAlgorithm:
 
         output = self.img_bgr.copy()
 
-        # noise reduction and Blur
-        dn_img = cv2.GaussianBlur(
-            src=self.hsv,
-            ksize=(13, 13),
-            sigmaX=3,
-            sigmaY=3)
-        dn_img = cv2.fastNlMeansDenoisingColored(dn_img, None, 10, 10, 7, 21)
+        # noise reduction
+        dn_img = cv2.fastNlMeansDenoisingColored(self.hsv, None, 10, 10, 7, 21)
 
         # detect circles in the image
-        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1,
-                                   minDist=90,
-                                   param1=90,
+        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1, 75,
+                                   param1=95,
                                    param2=20,
-                                   minRadius=50,
+                                   minRadius=45,
                                    maxRadius=105)
 
         # ensure at least some circles were found
@@ -184,8 +168,12 @@ class DetectionAlgorithm:
             avrg_rad = []
             for (x, y, r) in circles:
                 avrg_rad.append(r)
+            avrg_rad = sorted(avrg_rad)
 
-            avrg = sum(avrg_rad) / len(circles)
+            # Slicing 20% off of the circles to avoid exceptional bit or small circles messing up calculation
+            # getting the average of all circles and accept all within a threshold
+            l = round(len(avrg_rad)*0.2)
+            avrg = sum(avrg_rad[l:-l]) / len(circles[l:-l])
 
             # loop over the (x, y) coordinates and radius of the circles
             for (x, y, r) in circles:
@@ -201,41 +189,20 @@ class DetectionAlgorithm:
                         cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                     else:
                         continue
-
             # cv2.imshow("Test", output)
-            return output
 
+            return output
         else:
             print("No circles found.")
             exit()
 
-    def main(self, image, min_radius, max_radius):
+    def main(self, path):
         """
-        Main function that executes the algorithm, connection point to the GUI
-        :param image: image path
-        :param min_radius: min radius of the enclosing circles, passed from the GUI
-        :param max_radius: max radius of the enclosing circles, passed from the GUI
-        :return: image with detected apples and enclosing circles
+        Main function, calls detect()-function to perform detection
         """
 
-        # TODO *** PLEASE READ ***
-        # readded the connection between gui and the algorithm
-        # put the lines of code that call the algorithm without the gui into comment
-        # so you can just uncomment them when you wanna test and improve everything
-        # just put the return statements and stuff into comments when you do that
+        result = self.detect(path)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
-        # image_path = [
-        #     # 'images/apples/multiple/apple_tray1.jpg',
-        #     # 'images/apples/multiple/3_apples.jpg',
-        #     # 'images/apples/multiple/six_apples.jpg',
-        #     'images/apples/multiple/10_apples.jpg',
-        # ]
-        # for image in image_path:
-        #     self.detect(image)
-        #     cv2.waitKey(0)
-        #     cv2.destroyAllWindows()
-
-        return self.detect(image, min_radius, max_radius)
-
-# program = DetectionAlgorithm()
-# program.main()
+        return result
