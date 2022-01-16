@@ -135,11 +135,16 @@ class DetectionAlgorithm:
 
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-    def detect(self, path):
+    def detect(self, path, min_radius, max_radius):
         """
         Function that performs the actual detection of circles inside a given image.
         :param path: image path
+        :param min_radius: min radius of the enclosing circle
+        :param max_radius: max radius of the enclosing circle
+        :return: image with detected apples and enclosing circles
         """
+
+        # TODO: add using min and max radius to this function
 
         try:
             self.read_img(path)
@@ -204,9 +209,13 @@ class DetectionAlgorithm:
             print("No circles found.")
             exit()
 
-    def main(self, image):
+    def main(self, image, min_radius, max_radius):
         """
-        Main function, calls detect()-function to perform detection
+        Main function that executes the algorithm, connection point to the GUI
+        :param image: image path
+        :param min_radius: min radius of the enclosing circles, passed from the GUI
+        :param max_radius: max radius of the enclosing circles, passed from the GUI
+        :return: image with detected apples and enclosing circles
         """
 
         # TODO *** PLEASE READ ***
@@ -226,7 +235,7 @@ class DetectionAlgorithm:
         #     cv2.waitKey(0)
         #     cv2.destroyAllWindows()
 
-        return self.detect(image)
+        return self.detect(image, min_radius, max_radius)
 
 # program = DetectionAlgorithm()
 # program.main()

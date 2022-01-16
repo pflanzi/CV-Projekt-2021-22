@@ -42,14 +42,16 @@ radii = [
                range=(0, 1000),
                default_value=0,
                size=(20, 15),
-               orientation='horizontal')],
+               orientation='horizontal',
+               enable_events=True)],
     [Sg.Column(max_option),
      Sg.Text(key='-EXPAND8-', pad=5),
      Sg.Slider(key='max_r',
                range=(0, 1000),
                default_value=0,
                size=(20, 15),
-               orientation='horizontal')]
+               orientation='horizontal',
+               enable_events=True)]
 ]
 
 options = [
@@ -118,7 +120,9 @@ window['-EXPAND8-'].expand(True, True, True)
 # event listener
 while True:
     event, values = window.read()
-    print(event, values)
+    # print(event, values)
+
+    print(int(values['min_r']))
 
     if event == 'Open':
         file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True)
@@ -147,12 +151,22 @@ while True:
         program = dA()
 
         if file_path == '':
-            window['err'].update(window['err'].get() + 'Please select a valid image.')
+            window['err'].update(window['err'].get() + 'Please select a valid image.\n')
         else:
-            result = program.main(file_path)  # type => numpy.ndarray
+            min_rad = int(values['min_r'])
+            max_rad = int(values['max_r'])
 
-            img_bytes = cv2.imencode('.png', result)[1].tobytes()
-            window['picture'].update(data=img_bytes)
+            if min_rad == 0 or max_rad == 0:
+                window['err'].update(window['err'].get() + 'Radii must be >0.\n')
+
+            elif min_rad >= max_rad:
+                window['err'].update(window['err'].get() + 'Min radius can\'t be bigger than max radius.\n')
+
+            else:
+                result = program.main(file_path, min_rad, max_rad)  # type => numpy.ndarray
+
+                img_bytes = cv2.imencode('.png', result)[1].tobytes()
+                window['picture'].update(data=img_bytes)
 
     if event == Sg.WIN_CLOSED or event == 'Close':
         break
@@ -161,4 +175,4 @@ window.close()
 
 # ***** TODO
 # TODO: add an 'About' window
-# TODO: add a 'Print Results' function
+# TODO: add a 'Print Results' function or remove it
