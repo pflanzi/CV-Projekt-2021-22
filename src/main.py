@@ -196,26 +196,37 @@ class DetectionAlgorithm:
                         cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                     else:
                         continue
-            cv2.imshow("Test", output)
+
+            # cv2.imshow("Test", output)
+            return output
+
         else:
             print("No circles found.")
             exit()
 
-    def main(self):
+    def main(self, image):
         """
         Main function, calls detect()-function to perform detection
         """
-        image_path = [
-            # 'images/test/apple_tray.jpg',
-            # 'images/test/3_apples.jpg',
-            # 'images/test/six_apples.jpg',
-            'images/test/10_apples.jpg',
-        ]
-        for image in image_path:
-            self.detect(image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
+        # TODO *** PLEASE READ ***
+        # readded the connection between gui and the algorithm
+        # put the lines of code that call the algorithm without the gui into comment
+        # so you can just uncomment them when you wanna test and improve everything
+        # just put the return statements and stuff into comments when you do that
 
-program = DetectionAlgorithm()
-program.main()
+        # image_path = [
+        #     # 'images/test/apple_tray.jpg',
+        #     # 'images/test/3_apples.jpg',
+        #     # 'images/test/six_apples.jpg',
+        #     'images/test/10_apples.jpg',
+        # ]
+        # for image in image_path:
+        #     self.detect(image)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
+
+        return self.detect(image)
+
+# program = DetectionAlgorithm()
+# program.main()
