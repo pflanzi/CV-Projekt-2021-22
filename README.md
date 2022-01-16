@@ -28,7 +28,7 @@ pip install numpy
 ```
 pip install pysimplegui
 ```
-oder
+or
 ```
 pip3 install pysimplegui
 ```
