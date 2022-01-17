@@ -1,11 +1,16 @@
+"""
+Graphical User Interface (GUI) for executing the detection algorithm.
+
+Author(s): Jan Ehreke, Franziska Niemeyer
+"""
+
 # ------ imports ------ #
 import traceback
 import PySimpleGUI as Sg
 import io
 from PIL import Image
-import main
-from main import DetectionAlgorithm as dA
 import cv2
+from main import detect
 
 # for testing / configuration purposes => Sg.main()
 
@@ -17,9 +22,8 @@ Sg.theme('Light Green')
 
 # ------ drop down menu ------ #
 menu_def = [
-    ['&File', ['Open', '---', 'Close']],
-    ['&Edit', ['Print Results']],
-    ['&Extras', ['About']]
+    ['&File', ['Open', '---']],
+    ['&Window', ['Close', '---']]
 ]
 
 # ------ options ------ #
@@ -120,12 +124,10 @@ window['-EXPAND8-'].expand(True, True, True)
 # event listener
 while True:
     event, values = window.read()
-    # print(event, values)
-
-    print(int(values['min_r']))
+    print(event, values)
 
     if event == 'Open':
-        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True)
+        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True, initial_folder='../images')
 
         # opening the image and converting it into a byte stream to display it inside the main window
         try:
@@ -140,7 +142,7 @@ while True:
         except AttributeError as ae:
             tb = traceback.format_exc()
 
-            window['err'].update(window['err'].get() + 'No image has been selected.')
+            window['err'].update(window['err'].get() + '\nNo image has been selected.\n')
 
             print('\n***********************************\n')
             print('\nThis error may be ignored as it does not cause any serious issues.\n')
@@ -148,31 +150,30 @@ while True:
             print('\n***********************************\n')
 
     if event == 'count_button':
-        program = dA()
 
         if file_path == '':
-            window['err'].update(window['err'].get() + 'Please select a valid image.\n')
+            window['err'].update(window['err'].get() + '\nPlease select a valid image.\n')
         else:
             min_rad = int(values['min_r'])
             max_rad = int(values['max_r'])
 
             if min_rad == 0 or max_rad == 0:
-                window['err'].update(window['err'].get() + 'Radii must be >0.\n')
+                window['err'].update(window['err'].get() + '\nRadii must be >0.\n')
 
             elif min_rad >= max_rad:
-                window['err'].update(window['err'].get() + 'Min radius can\'t be bigger than max radius.\n')
+                window['err'].update(window['err'].get() + '\nMin radius can\'t be bigger than max radius.\n')
 
             else:
-                result = program.main(file_path, min_rad, max_rad)  # type => numpy.ndarray
+                if 'single' in file_path:
+                    amount, image = detect(file_path, min_rad, max_rad, resize='single')  # type => numpy.ndarray
+                else:
+                    amount, image = detect(file_path, min_rad, max_rad, resize='multiple')
 
-                img_bytes = cv2.imencode('.png', result)[1].tobytes()
+                img_bytes = cv2.imencode('.png', image)[1].tobytes()
                 window['picture'].update(data=img_bytes)
+                window['result'].update(amount)
 
     if event == Sg.WIN_CLOSED or event == 'Close':
         break
 
 window.close()
-
-# ***** TODO
-# TODO: add an 'About' window
-# TODO: add a 'Print Results' function or remove it

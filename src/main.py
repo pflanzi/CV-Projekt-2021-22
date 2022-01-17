@@ -1,3 +1,10 @@
+"""
+Algorithm for detecting apples.
+
+Author(s): Jan Ehreke, Franziska Niemeyer
+"""
+
+# ------ imports ------ #
 import cv2
 import numpy as np
 import imutils
@@ -5,7 +12,17 @@ from PIL import Image
 import glob
 
 
-def detect(path):
+# ------ algorithm ------ #
+def detect(path, min_r, max_r, resize='single'):
+    """
+    The detection algorith. Counts apples.
+    :param path: image path
+    :param min_r: min radius for enclosing circles
+    :param max_r: max radius for enclosing circles
+    :param resize: resizing method for single or multiple apples
+    :return image with enclosing circles
+    """
+
     # Defining the color ranges to be filtered.
     # The following ranges should be used on HSV domain image.
     lower_red_low = (0, 145, 163)
@@ -49,7 +66,7 @@ def detect(path):
         circles.append(((x, y), r))
 
     for ((x, y), r) in circles:
-        if 40 < r < 110:
+        if min_r < r < max_r:
             if not coords:
                 c_num += 1
                 coords.append((x, y))
@@ -66,22 +83,25 @@ def detect(path):
 
         else:
             continue
-    cv2.imshow("thresh", thresh)
-    cv2.imshow("dil", dilation)
-    cv2.imshow("Detected Apples", image)
+
+    # cv2.imshow("thresh", thresh)
+    # cv2.imshow("dil", dilation)
+    # cv2.imshow("Detected Apples", image)
+
+    return c_num, image
 
 
-image_list = []
+# image_list = []
 # resize = "single"
 # for filename in glob.glob('../images/apples/single/other/*.jpg'):
 #     image_list.append(filename)
 
-resize = "multiple"
-for filename in glob.glob('images/apples/multiple/*.jpg'):
-    image_list.append(filename)
-
-for image in image_list:
-    detect(image)
-    # cv2.imshow("HSV Image", image_hsv)
-    # cv2.imshow("Mask image", mask)
-    cv2.waitKey(0)
+# resize = "multiple"
+# for filename in glob.glob('images/apples/multiple/*.jpg'):
+#     image_list.append(filename)
+#
+# for image in image_list:
+#     detect(image)
+#     # cv2.imshow("HSV Image", image_hsv)
+#     # cv2.imshow("Mask image", mask)
+#     cv2.waitKey(0)
