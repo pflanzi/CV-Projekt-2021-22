@@ -6,19 +6,19 @@ import imutils
 def detect(path):
     # Defining the color ranges to be filtered.
     # The following ranges should be used on HSV domain image.
-    # lower_red_low = (0, 145, 163)
-    # lower_red_high = (8, 255, 255)
-    # higher_red_low = (175, 145, 163)
-    # higher_red_high = (180, 255, 255)
-    # raw_low = (25, 115, 128)
-    # raw_high = (38, 255, 255)
-
-    lower_red_low = (0, 77, 115)
-    lower_red_high = (5, 255, 255)
-    higher_red_low = (160, 89, 128)
+    lower_red_low = (0, 145, 163)
+    lower_red_high = (8, 255, 255)
+    higher_red_low = (175, 145, 163)
     higher_red_high = (180, 255, 255)
-    raw_low = (28, 89, 128)
-    raw_high = (35, 255, 255)
+    raw_low = (25, 115, 128)
+    raw_high = (38, 255, 255)
+
+    # lower_red_low = (0, 77, 115)
+    # lower_red_high = (5, 255, 255)
+    # higher_red_low = (160, 89, 128)
+    # higher_red_high = (180, 255, 255)
+    # raw_low = (28, 89, 128)
+    # raw_high = (35, 255, 255)
 
     image_bgr = cv2.imread(path)
     image = image_bgr.copy()
@@ -49,6 +49,7 @@ def detect(path):
         circles.append(((x, y), r))
 
     for ((x, y), r) in circles:
+        # r changed via GUI
         if 50 < r < 100:
             c_num += 1
             cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
