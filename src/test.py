@@ -1,109 +1,241 @@
+# ----- imports ----- #
 import cv2
-import numpy as np
 import imutils
+import numpy as np
+
+# ----- To-Do-List ----- #
+# TODO: add documentation, check for obsolete code pieces, check formatting => keep this until project is finished
+
+# TODO: adjust Hough Circle detection (overlapping apples)
+# TODO: add another processing step to filter / improve results
+
+# TODO: connect this code to the GUI
+
+# ----- class, functions, variables ----- #
+COLOR_NAMES = ["redgreen", "red", "yellowgreen"]
+
+COLOR_RANGES_HSV = {
+    "redgreen": [(0, 50, 20), (20, 255, 255)],
+    "red": [(170, 50, 20), (180, 255, 255)],
+    "yellowgreen": [(21, 50, 20), (80, 255, 255)]
+}
 
 
-def detect(path):
-    # Defining the color ranges to be filtered.
-    # The following ranges should be used on HSV domain image.
-    # lower_red_low = (0, 145, 163)
-    # lower_red_high = (8, 255, 255)
-    # higher_red_low = (175, 145, 163)
-    # higher_red_high = (180, 255, 255)
-    # raw_low = (25, 115, 128)
-    # raw_high = (38, 255, 255)
+def get_mask(frame, color):
+    """
+    Creates a mask from HSV image which will later be used to check for certain colors in a ROI
+    :param frame: ROI borders
+    :param color: color to check for  # TODO: what is the parameter exactly?
+    :return: colored mask
+    """
+    blurred_frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    hsv_frame = cv2.cvtColor(blurred_frame, cv2.COLOR_BGR2HSV)
 
-    # lower red range
-    red1_bright_min = (0, 77, 204)
-    red1_bright_max = (8, 166, 255)
-    red1_middle_min = (0, 166, 179)
-    red1_middle_max = (8, 230, 242)
-    red1_dark_min = (0, 153, 64)
-    red1_dark_max = (8, 242, 179)
+    color_range = COLOR_RANGES_HSV[color]
+    lower = np.array(color_range[0])
+    upper = np.array(color_range[1])
 
-    # higher red range
-    red2_bright_min = (165, 46, 179)
-    red2_bright_max = (180, 217, 255)
-    red2_middle_min = (165, 153, 166)
-    red2_middle_max = (180, 255, 230)
-    red2_dark_min = (165, 143, 64)
-    red2_dark_max = (180, 255, 166)
+    color_mask = cv2.inRange(hsv_frame, lower, upper)
+    color_mask = cv2.bitwise_and(blurred_frame, blurred_frame, mask=color_mask)
 
-    # yellowgreen range
-    yg_bright_min = (25, 26, 204)
-    yg_bright_max = (38, 153, 255)
-    yg_middle_min = (25, 153, 153)
-    yg_middle_max = (38, 230, 217)
-    yg_dark_min = (25, 128, 102)
-    yg_dark_max = (38, 255, 166)
+    return color_mask
 
 
-    image_bgr = cv2.imread(path)
-    image = image_bgr.copy()
-    image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+def get_color(roi):
+    """
+    Finds the dominant color in a ROI
+    :param roi: given ROI (region of interest)
+    :return: dominant colour
+    """
+    roi = np.float32(roi)
 
-    # lower red range
-    mask_red1_bright = cv2.inRange(image_hsv, red1_bright_min, red1_bright_max)
-    mask_red1_middle = cv2.inRange(image_hsv, red1_middle_min, red1_middle_max)
-    mask_red1_dark = cv2.inRange(image_hsv, red1_dark_min, red1_dark_max)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    if len(roi) != 0:
+        ret, label, center = cv2.kmeans(roi, 5, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    else:
+        return None
 
-    # higher red range
-    mask_red2_bright = cv2.inRange(image_hsv, red2_bright_min, red2_bright_max)
-    mask_red2_middle = cv2.inRange(image_hsv, red2_middle_min, red2_middle_max)
-    mask_red2_dark = cv2.inRange(image_hsv, red2_dark_min, red2_dark_max)
+    try:
+        center = np.uint8(center)
+    except TypeError as error:
+        print(error)
+        return None
+    res = center[label.flatten()]
+    res2 = res.reshape(roi.shape)
 
-    # yellow green range
-    mask_yg_bright = cv2.inRange(image_hsv, yg_bright_min, yg_bright_max)
-    mask_yg_middle = cv2.inRange(image_hsv, yg_middle_min, yg_middle_max)
-    mask_yg_dark = cv2.inRange(image_hsv, yg_dark_min, yg_dark_max)
+    pixels_per_color = []
+    for color in COLOR_NAMES:
+        mask = get_mask(res2, color)
+        grey_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+        count = cv2.countNonZero(grey_mask)
+        pixels_per_color.append(count)
 
-    mask = mask_red1_bright + mask_red1_middle + mask_red1_dark + mask_red2_bright + mask_red2_middle + mask_red2_dark + mask_yg_bright + mask_yg_middle + mask_yg_dark
+    # TODO: pixel_threshold and /3 through gui?
+    # Filter every circle that is not at least 1/3 red and should not be completely red so tomatoes for example are not
+    # detected
+    # pixel per color checks for the 2 red thresholds against the content of the circles
+    thresh = pixels_per_color[0] + pixels_per_color[1] + pixels_per_color[2]
+    pixel_threshold = 0.5
+    red_threshold = 1000
 
-    blur = cv2.GaussianBlur(mask, (5, 5), 0)
-    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    kernel = np.ones((5, 5), np.uint8)
-    erosion = cv2.erode(thresh, kernel, iterations=3)
-    dilation = cv2.dilate(erosion, kernel, iterations=2)
+    # TODO: Change return for eg error handling
+    if pixels_per_color[0] > ((roi.shape[0] * roi.shape[1]) / red_threshold) or pixels_per_color[1] > (
+            (roi.shape[0] * roi.shape[1]) / red_threshold):
+        if pixels_per_color[0] < ((roi.shape[0] * roi.shape[1]) / 1.2) and pixels_per_color[1] < (
+                (roi.shape[0] * roi.shape[1]) / 1.2):
+            if thresh > ((roi.shape[0] * roi.shape[1]) * pixel_threshold):
+                return COLOR_NAMES[pixels_per_color.index(max(pixels_per_color))]
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
 
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    # close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=3)
 
-    cnts, _ = cv2.findContours(dilation.copy(), cv2.RETR_EXTERNAL,
-                               cv2.CHAIN_APPROX_SIMPLE)
-    c_num = 0
-    circles = []
-    for i, c in enumerate(cnts):
-        # draw a circle enclosing the object
-        ((x, y), r) = cv2.minEnclosingCircle(c)
-        circles.append(((x, y), r))
+class DetectionAlgorithm:
+    """
+    Detection Algorithm class containing functions
+    for detecting and counting objects in a given image
+    """
 
-    for ((x, y), r) in circles:
-        if 50 < r < 100:
-            c_num += 1
-            cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
-            cv2.putText(image, "#{}".format(c_num), (int(x) - 10, int(y)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+    def __init__(self):
+        """
+        Class constructor initializing the following class attributes:
+            img_bgr : numpy.ndarray
+                stores a colored image (channels are in BGR order)
+            hsv : numpy.ndarray
+                stores a colored HSV image
+            dim : tuple
+                dimensions of the BGR image: (rows, columns, channels)
+        """
+
+        self.img_bgr = None
+        self.hsv = None
+        self.dim = (0, 0, 0)
+
+    def read_img(self, path):
+        """
+        Reads the image from a given path and resizes it if necessary.
+        :param path: system path to the image
+        """
+        if type(path) is not str:
+            print('The given path must be of type str!')
+
+        self.img_bgr = cv2.imread(path)
+
+        self.dim = self.img_bgr.shape  # dim = rows, columns, channels
+
+        while self.dim[1] > 1000 or self.dim[0] > 1000:
+            new_width = int(self.dim[1] * 0.9)
+
+            self.img_bgr = imutils.resize(self.img_bgr, width=new_width)
+
+            self.dim = self.img_bgr.shape
+
+        self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
+
+    def detect(self, path, min_radius, max_radius):
+        """
+        Function that performs the actual detection of circles inside a given image.
+        :param path: image path
+        :param min_radius: min radius of the enclosing circle
+        :param max_radius: max radius of the enclosing circle
+        :return: image with detected apples and enclosing circles
+        """
+
+        # TODO: add using min and max radius to this function
+
+        try:
+            self.read_img(path)
+
+        except AttributeError as a:
+            print(f'{a}. Please enter a valid image path.')
+            exit()
+
+        except TypeError as t:
+            print(f'{t}. Please enter a valid image path.')
+            exit()
+
+        output = self.img_bgr.copy()
+
+        # noise reduction and Blur
+        dn_img = cv2.GaussianBlur(
+            src=self.hsv,
+            ksize=(13, 13),
+            sigmaX=3,
+            sigmaY=3)
+        dn_img = cv2.fastNlMeansDenoisingColored(dn_img, None, 10, 10, 7, 21)
+
+        # detect circles in the image
+        circles = cv2.HoughCircles(dn_img[:, :, 0], cv2.HOUGH_GRADIENT, 1,
+                                   minDist=90,
+                                   param1=90,
+                                   param2=20,
+                                   minRadius=50,
+                                   maxRadius=105)
+
+        # ensure at least some circles were found
+        if circles is not None:
+
+            # convert the (x, y) coordinates and radius of the circles to integers
+            circles = np.round(circles[0, :]).astype("int")
+
+            avrg_rad = []
+            for (x, y, r) in circles:
+                avrg_rad.append(r)
+
+            avrg = sum(avrg_rad) / len(circles)
+
+            # loop over the (x, y) coordinates and radius of the circles
+            for (x, y, r) in circles:
+                roi = self.img_bgr[int(y - r / 2):int(y + r / 2), int(x - r / 2):int(x + r / 2)]
+                color = get_color(roi=roi)
+
+                # draw the circle in the output image, then draw a rectangle
+                # corresponding to the center of the circle
+                if (avrg * 0.7) < r < (avrg * 1.3):
+                    if color == "redgreen" or color == "red":
+                        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                        cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+                    else:
+                        continue
+
+            # cv2.imshow("Test", output)
+            return output
 
         else:
-            continue
-    cv2.imshow("Mask", mask)
-    cv2.imshow("Thresh", thresh)
-    cv2.imshow("Erosion", erosion)
-    cv2.imshow("Dilation", dilation)
-    cv2.imshow("Detected Apples", image)
+            print("No circles found.")
+            exit()
 
+    def main(self, image, min_radius, max_radius):
+        """
+        Main function that executes the algorithm, connection point to the GUI
+        :param image: image path
+        :param min_radius: min radius of the enclosing circles, passed from the GUI
+        :param max_radius: max radius of the enclosing circles, passed from the GUI
+        :return: image with detected apples and enclosing circles
+        """
 
-image_path = [
-    '../images/apples/multiple/10_apples.jpg',
-    '../images/apples/multiple/3_apples.jpg',
-    '../images/apples/multiple/7_apples.jpg',
-    '../images/apples/multiple/six_apples.jpg',
-    '../images/apples/multiple/apple_test1.png',
-    '../images/apples/multiple/apple_tray1.jpg',
-    '../images/apples/multiple/apple_basket.jpg'
-]
-for image in image_path:
-    detect(image)
-    # cv2.imshow("HSV Image", image_hsv)
-    # cv2.imshow("Mask image", mask)
-    cv2.waitKey(0)
+        # TODO *** PLEASE READ ***
+        # readded the connection between gui and the algorithm
+        # put the lines of code that call the algorithm without the gui into comment
+        # so you can just uncomment them when you wanna test and improve everything
+        # just put the return statements and stuff into comments when you do that
+
+        # image_path = [
+        #     # 'images/apples/multiple/apple_tray1.jpg',
+        #     # 'images/apples/multiple/3_apples.jpg',
+        #     # 'images/apples/multiple/six_apples.jpg',
+        #     'images/apples/multiple/10_apples.jpg',
+        # ]
+        # for image in image_path:
+        #     self.detect(image)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
+
+        return self.detect(image, min_radius, max_radius)
+
+# program = DetectionAlgorithm()
+# program.main()
