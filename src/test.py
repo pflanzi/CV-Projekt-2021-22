@@ -13,22 +13,51 @@ def detect(path):
     # raw_low = (25, 115, 128)
     # raw_high = (38, 255, 255)
 
-    lower_red_low = (0, 77, 115)
-    lower_red_high = (5, 255, 255)
-    higher_red_low = (160, 89, 128)
-    higher_red_high = (180, 255, 255)
-    raw_low = (28, 89, 128)
-    raw_high = (35, 255, 255)
+    # lower red range
+    red1_bright_min = (0, 77, 204)
+    red1_bright_max = (8, 166, 255)
+    red1_middle_min = (0, 166, 179)
+    red1_middle_max = (8, 230, 242)
+    red1_dark_min = (0, 153, 64)
+    red1_dark_max = (8, 242, 179)
+
+    # higher red range
+    red2_bright_min = (165, 46, 179)
+    red2_bright_max = (180, 217, 255)
+    red2_middle_min = (165, 153, 166)
+    red2_middle_max = (180, 255, 230)
+    red2_dark_min = (165, 143, 64)
+    red2_dark_max = (180, 255, 166)
+
+    # yellowgreen range
+    yg_bright_min = (25, 26, 204)
+    yg_bright_max = (38, 153, 255)
+    yg_middle_min = (25, 153, 153)
+    yg_middle_max = (38, 230, 217)
+    yg_dark_min = (25, 128, 102)
+    yg_dark_max = (38, 255, 166)
+
 
     image_bgr = cv2.imread(path)
     image = image_bgr.copy()
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
 
-    mask_lower_red = cv2.inRange(image_hsv, lower_red_low, lower_red_high)
-    mask_higher_red = cv2.inRange(image_hsv, higher_red_low, higher_red_high)
-    mask_raw = cv2.inRange(image_hsv, raw_low, raw_high)
+    # lower red range
+    mask_red1_bright = cv2.inRange(image_hsv, red1_bright_min, red1_bright_max)
+    mask_red1_middle = cv2.inRange(image_hsv, red1_middle_min, red1_middle_max)
+    mask_red1_dark = cv2.inRange(image_hsv, red1_dark_min, red1_dark_max)
 
-    mask = mask_lower_red + mask_higher_red + mask_raw
+    # higher red range
+    mask_red2_bright = cv2.inRange(image_hsv, red2_bright_min, red2_bright_max)
+    mask_red2_middle = cv2.inRange(image_hsv, red2_middle_min, red2_middle_max)
+    mask_red2_dark = cv2.inRange(image_hsv, red2_dark_min, red2_dark_max)
+
+    # yellow green range
+    mask_yg_bright = cv2.inRange(image_hsv, yg_bright_min, yg_bright_max)
+    mask_yg_middle = cv2.inRange(image_hsv, yg_middle_min, yg_middle_max)
+    mask_yg_dark = cv2.inRange(image_hsv, yg_dark_min, yg_dark_max)
+
+    mask = mask_red1_bright + mask_red1_middle + mask_red1_dark + mask_red2_bright + mask_red2_middle + mask_red2_dark + mask_yg_bright + mask_yg_middle + mask_yg_dark
 
     blur = cv2.GaussianBlur(mask, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
@@ -65,13 +94,13 @@ def detect(path):
 
 
 image_path = [
-    '../images/test/10_apples.jpg',
-    '../images/test/3_apples.jpg',
-    '../images/test/7_apples.jpg',
-    '../images/test/six_apples.jpg',
-    '../images/test/apple_test1.png',
-    '../images/test/apple_tray1.jpg',
-    '../images/test/apple_basket.jpg'
+    '../images/apples/multiple/10_apples.jpg',
+    '../images/apples/multiple/3_apples.jpg',
+    '../images/apples/multiple/7_apples.jpg',
+    '../images/apples/multiple/six_apples.jpg',
+    '../images/apples/multiple/apple_test1.png',
+    '../images/apples/multiple/apple_tray1.jpg',
+    '../images/apples/multiple/apple_basket.jpg'
 ]
 for image in image_path:
     detect(image)
