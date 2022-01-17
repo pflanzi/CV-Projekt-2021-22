@@ -135,11 +135,16 @@ class DetectionAlgorithm:
 
         self.hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-    def detect(self, path):
+    def detect(self, path, min_radius, max_radius):
         """
         Function that performs the actual detection of circles inside a given image.
         :param path: image path
+        :param min_radius: min radius of the enclosing circle
+        :param max_radius: max radius of the enclosing circle
+        :return: image with detected apples and enclosing circles
         """
+
+        # TODO: add using min and max radius to this function
 
         try:
             self.read_img(path)
@@ -196,26 +201,41 @@ class DetectionAlgorithm:
                         cv2.putText(output, "Apple", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
                     else:
                         continue
-            cv2.imshow("Test", output)
+
+            # cv2.imshow("Test", output)
+            return output
+
         else:
             print("No circles found.")
             exit()
 
-    def main(self):
+    def main(self, image, min_radius, max_radius):
         """
-        Main function, calls detect()-function to perform detection
+        Main function that executes the algorithm, connection point to the GUI
+        :param image: image path
+        :param min_radius: min radius of the enclosing circles, passed from the GUI
+        :param max_radius: max radius of the enclosing circles, passed from the GUI
+        :return: image with detected apples and enclosing circles
         """
-        image_path = [
-            # 'images/test/apple_tray.jpg',
-            # 'images/test/3_apples.jpg',
-            # 'images/test/six_apples.jpg',
-            'images/test/10_apples.jpg',
-        ]
-        for image in image_path:
-            self.detect(image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
+        # TODO *** PLEASE READ ***
+        # readded the connection between gui and the algorithm
+        # put the lines of code that call the algorithm without the gui into comment
+        # so you can just uncomment them when you wanna test and improve everything
+        # just put the return statements and stuff into comments when you do that
 
-program = DetectionAlgorithm()
-program.main()
+        # image_path = [
+        #     # 'images/apples/multiple/apple_tray1.jpg',
+        #     # 'images/apples/multiple/3_apples.jpg',
+        #     # 'images/apples/multiple/six_apples.jpg',
+        #     'images/apples/multiple/10_apples.jpg',
+        # ]
+        # for image in image_path:
+        #     self.detect(image)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
+
+        return self.detect(image, min_radius, max_radius)
+
+# program = DetectionAlgorithm()
+# program.main()

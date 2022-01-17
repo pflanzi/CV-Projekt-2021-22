@@ -46,7 +46,7 @@ def mask(image, clusters=8, rounds=1):
 
 # Load image, resize smaller, perform kmeans, grayscale
 # Apply Gaussian blur, Otsu's threshold
-image = cv2.imread('../images/test/10_apples.jpg')
+image = cv2.imread('../images/apples/multiple/10_apples.jpg')
 # image = imutils.resize(image, width=600)
 kmeans = mask(image, clusters=3)
 blur = cv2.GaussianBlur(kmeans, (9, 9), 0)
