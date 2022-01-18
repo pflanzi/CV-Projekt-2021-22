@@ -15,7 +15,7 @@ import glob
 # ------ algorithm ------ #
 def detect(path, min_r, max_r, resize='single'):
     """
-    The detection algorith. Counts apples.
+    The detection algorithm. Counts apples.
     :param path: image path
     :param min_r: min radius for enclosing circles
     :param max_r: max radius for enclosing circles
@@ -27,7 +27,7 @@ def detect(path, min_r, max_r, resize='single'):
     # The following ranges should be used on HSV domain image.
     lower_red_low = (0, 145, 163)
     lower_red_high = (8, 255, 255)
-    higher_red_low = (175, 145, 163)
+    higher_red_low = (175, 145, 26)
     higher_red_high = (180, 255, 255)
     raw_low = (25, 115, 128)
     raw_high = (38, 255, 255)
@@ -55,18 +55,22 @@ def detect(path, min_r, max_r, resize='single'):
 
     blur = cv2.GaussianBlur(mask, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    kernel = np.ones((5, 5), np.uint8)
+    erosion = cv2.erode(thresh, kernel, iterations=2)
+    closing = cv2.morphologyEx(erosion, cv2.MORPH_CLOSE, kernel)
 
-    cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-                               cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_SIMPLE)
     c_num = 0
     circles, coords = [], []
-    for i, c in enumerate(cnts):
+    for i, c in enumerate(contours):
         # draw a circle enclosing the object
         ((x, y), r) = cv2.minEnclosingCircle(c)
         circles.append(((x, y), r))
 
     for ((x, y), r) in circles:
         if min_r < r < max_r:
+            # First iteration on empty list
             if not coords:
                 c_num += 1
                 coords.append((x, y))
@@ -74,6 +78,7 @@ def detect(path, min_r, max_r, resize='single'):
                 cv2.putText(image, "#{}".format(c_num), (int(x) - 10, int(y)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
             else:
+                # Check for distance to center point to center of every other circle
                 if all(np.sqrt((coord[0] - x) ** 2 + (coord[1] - y) ** 2) > 90 for coord in coords):
                     c_num += 1
                     cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
