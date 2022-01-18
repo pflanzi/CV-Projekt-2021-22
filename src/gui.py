@@ -129,7 +129,7 @@ while True:
         print(e)
 
     if event == 'Open':
-        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True, initial_folder='../images/apples')
+        file_path = Sg.popup_get_file(' ', title='Please choose a file', no_window=True, initial_folder='../images/apples')
 
         # opening the image and converting it into a byte stream to display it inside the main window
         try:
@@ -144,7 +144,9 @@ while True:
         except AttributeError as ae:
             tb = traceback.format_exc()
 
-            window['err'].update(window['err'].get() + '\nNo image has been selected.\n')
+            print(f"path: {file_path}, type: {type(file_path)}")
+
+            window['err'].update(window['err'].get() + 'No image has been selected.')
 
             print('\n***********************************\n')
             print('\nThis error may be ignored as it does not cause any serious issues.\n')
@@ -154,16 +156,17 @@ while True:
     if event == 'count_button':
 
         if file_path == '':
-            window['err'].update(window['err'].get() + '\nPlease select a valid image.\n')
+            window['err'].update(window['err'].get() + 'Please select a valid image.')
+
+        elif file_path == ():
+            window['err'].update(window['err'].get() + 'No image has been selected.')
+
         else:
             min_rad = int(values['min_r'])
             max_rad = int(values['max_r'])
 
-            if min_rad == 0 or max_rad == 0:
-                window['err'].update(window['err'].get() + '\nRadii must be >0.\n')
-
-            elif min_rad >= max_rad:
-                window['err'].update(window['err'].get() + '\nMin radius can\'t be bigger than max radius.\n')
+            if min_rad >= max_rad:
+                window['err'].update(window['err'].get() + 'Min radius can\'t be bigger than max radius.')
 
             else:
                 if 'single' in file_path:

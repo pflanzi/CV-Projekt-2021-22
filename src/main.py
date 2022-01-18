@@ -33,6 +33,7 @@ def detect(path, min_r, max_r, resize='single'):
     raw_high = (38, 255, 255)
 
     image_bgr = cv2.imread(path)
+
     if resize == "single":
         image_bgr = cv2.resize(image_bgr, (200, 200), interpolation=cv2.INTER_AREA)
     elif resize == "multiple" and image_bgr.shape[0] > 1000:
