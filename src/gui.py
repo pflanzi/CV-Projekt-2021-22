@@ -43,16 +43,16 @@ radii = [
     [Sg.Column(min_option),
      Sg.Text(key='-EXPAND7-', pad=5),
      Sg.Slider(key='min_r',
-               range=(0, 1000),
-               default_value=0,
+               range=(1, 300),
+               default_value=50,
                size=(20, 15),
                orientation='horizontal',
                enable_events=True)],
     [Sg.Column(max_option),
      Sg.Text(key='-EXPAND8-', pad=5),
      Sg.Slider(key='max_r',
-               range=(0, 1000),
-               default_value=0,
+               range=(10, 300),
+               default_value=130,
                size=(20, 15),
                orientation='horizontal',
                enable_events=True)]
@@ -125,9 +125,13 @@ window['-EXPAND8-'].expand(True, True, True)
 while True:
     event, values = window.read()
     print(event, values)
+    try:
+        window['err'].update('')
+    except Exception as e:
+        print(e)
 
     if event == 'Open':
-        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True, initial_folder='../images')
+        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True, initial_folder='../images/apples')
 
         # opening the image and converting it into a byte stream to display it inside the main window
         try:
