@@ -32,3 +32,6 @@ or
 ```
 pip3 install pysimplegui
 ```
+
+## Running the program
+To run the program, just execute **gui.py** and open your picture of choice through the file dialog. :)
