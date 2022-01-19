@@ -27,6 +27,13 @@ menu_def = [
 ]
 
 # ------ options ------ #
+err_box = [
+    [Sg.Multiline(key='err',
+                  font=('Ubuntu', 10),
+                  size=(30, 3),
+                  expand_x=True,
+                  expand_y=True)]
+]
 
 min_option = [
     [Sg.Text(key='-EXPAND5-', pad=0)],
@@ -58,10 +65,15 @@ radii = [
                enable_events=True)]
 ]
 
-options = [
+settings = [
     [Sg.Column(radii, pad=(10, 10))],
     [Sg.Text(key='-EXPAND3-', pad=0), Sg.Button('Count', key='count_button', pad=(10, 15)),
      Sg.Text(key='-EXPAND4-', pad=0)]
+]
+
+sidebar = [
+    [Sg.Frame(' Settings ', settings, vertical_alignment='t', pad=((0, 0), (0, 10)))],
+    [Sg.Column(err_box, vertical_alignment='t', expand_x=True, expand_y=True, pad=((0, 0), (10, 0)))]
 ]
 
 # ------ picture area ------ #
@@ -74,26 +86,12 @@ pic = [
     ]
 ]
 
-# ------ error message box ------ #
-err_box = [
-    [Sg.Multiline(key='err',
-                  font=('Ubuntu', 10),
-                  autoscroll=True,
-                  size=(35, 30),
-                  auto_refresh=True,
-                  do_not_clear=True,
-                  disabled=True)]
-]
-
 # ------ layout ------ #
 layout = [
     [Sg.Menu(menu_def, font=('Ubuntu', 11), tearoff=True)],
     [Sg.Text(key='-EXPAND1-', pad=0)],
-    [
-        Sg.Frame(' Options ', options, vertical_alignment='t'),
-        Sg.Column(pic, justification='c', pad=(100, 3), vertical_alignment='t'),
-        Sg.Column(err_box, vertical_alignment='t')
-    ],
+    [Sg.Column(sidebar, vertical_alignment='t'),
+     Sg.Column(pic, justification='c', pad=(100, 3), vertical_alignment='t')],
     [Sg.Text(key='-EXPAND2-', pad=0)]
 
 ]
@@ -112,10 +110,10 @@ height = window.TKroot.winfo_screenheight() * 0.75
 window.TKroot.geometry("%dx%d" % (width, height))
 
 # expanding empty container elements to adjust element position
-window['-EXPAND1-'].expand(True, True, True)        # image centering
-window['-EXPAND2-'].expand(True, True, True)        # image centering
-window['-EXPAND3-'].expand(True, True, False)       # count button centering
-window['-EXPAND4-'].expand(True, True, False)       # count button centering
+window['-EXPAND1-'].expand(True, True, True)  # image centering
+window['-EXPAND2-'].expand(True, True, True)  # image centering
+window['-EXPAND3-'].expand(True, True, False)  # count button centering
+window['-EXPAND4-'].expand(True, True, False)  # count button centering
 window['-EXPAND5-'].expand(True, True, False)
 window['-EXPAND6-'].expand(True, True, False)
 window['-EXPAND7-'].expand(True, True, True)
@@ -131,12 +129,12 @@ while True:
         print(e)
 
     if event == 'Open':
-        file_path = Sg.popup_get_file(' ', title='Please chose a file', no_window=True, initial_folder='../images/apples')
+        file_path = Sg.popup_get_file(' ', title='Please choose a file', no_window=True, initial_folder='../images/apples')
 
         # opening the image and converting it into a byte stream to display it inside the main window
         try:
             image = Image.open(file_path)
-            image.thumbnail((500, 500))  # change max size of the displayed image, preserves aspect ratio
+            image.thumbnail((500, 500))  # change max size of the displayed image, maintains aspect ratio
             bio = io.BytesIO()
             image.save(bio, format='PNG')
 
@@ -146,7 +144,9 @@ while True:
         except AttributeError as ae:
             tb = traceback.format_exc()
 
-            window['err'].update(window['err'].get() + '\nNo image has been selected.\n')
+            print(f"path: {file_path}, type: {type(file_path)}")
+
+            window['err'].update(window['err'].get() + 'No image has been selected.')
 
             print('\n***********************************\n')
             print('\nThis error may be ignored as it does not cause any serious issues.\n')
@@ -156,16 +156,17 @@ while True:
     if event == 'count_button':
 
         if file_path == '':
-            window['err'].update(window['err'].get() + '\nPlease select a valid image.\n')
+            window['err'].update(window['err'].get() + 'Please select a valid image.')
+
+        elif file_path == ():
+            window['err'].update(window['err'].get() + 'No image has been selected.')
+
         else:
             min_rad = int(values['min_r'])
             max_rad = int(values['max_r'])
 
-            if min_rad == 0 or max_rad == 0:
-                window['err'].update(window['err'].get() + '\nRadii must be >0.\n')
-
-            elif min_rad >= max_rad:
-                window['err'].update(window['err'].get() + '\nMin radius can\'t be bigger than max radius.\n')
+            if min_rad >= max_rad:
+                window['err'].update(window['err'].get() + 'Min radius can\'t be bigger than max radius.')
 
             else:
                 if 'single' in file_path:
@@ -174,6 +175,7 @@ while True:
                     amount, image = detect(file_path, min_rad, max_rad, resize='multiple')
 
                 img_bytes = cv2.imencode('.png', image)[1].tobytes()
+
                 window['picture'].update(data=img_bytes)
                 window['result'].update(amount)
 
