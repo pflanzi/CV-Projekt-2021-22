@@ -69,7 +69,7 @@ def detect(path, min_r, max_r, resize):
     # cv2.CHAIN_APPROX_SIMPLE: We have circles so we only need some points to get a circle and to save memory
     contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL,
                                    cv2.CHAIN_APPROX_SIMPLE)
-    c_num = 0
+    coord_num = 0
     circles, coords = [], []
     for i, c in enumerate(contours):
         # Draw the smallest circle that still encloses the whole contour
@@ -82,20 +82,20 @@ def detect(path, min_r, max_r, resize):
         if min_r < r < max_r:
             # First iteration on empty list
             if not coords:
-                c_num += 1
+                coord_num += 1
                 coords.append((x, y))
                 cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
-                cv2.putText(image, "#{}".format(c_num), (int(x) - 10, int(y)),
+                cv2.putText(image, "#{}".format(coord_num), (int(x) - 10, int(y)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
             else:
                 # Check for distance to center point to center of every other circle
                 # If distance too small the Algorithm detected multiple circles on a single apple
                 if all(np.sqrt((coord[0] - x) ** 2 + (coord[1] - y) ** 2) > 90 for coord in coords):
-                    c_num += 1
+                    coord_num += 1
                     cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
-                    cv2.putText(image, "#{}".format(c_num), (int(x) - 10, int(y)),
+                    cv2.putText(image, "#{}".format(coord_num), (int(x) - 10, int(y)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
                 coords.append((x, y))
         else:
             continue
-    return c_num, image
+    return coord_num, image
