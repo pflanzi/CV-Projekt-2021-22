@@ -29,21 +29,21 @@ def detect(path, min_r, max_r, resize):
     raw_low = (25, 115, 128)
     raw_high = (38, 255, 255)
 
-    image_bgr = cv2.imread(path)
+    image_original = cv2.imread(path)
     # Resizing based on number of apples on the picture. Best results if apple is somewhat around ~100x100
     if resize == "single":
-        image_bgr = cv2.resize(image_bgr, (200, 200), interpolation=cv2.INTER_AREA)
-    elif resize == "multiple" and image_bgr.shape[0] > 1000:
+        image_original = cv2.resize(image_original, (200, 200), interpolation=cv2.INTER_AREA)
+    elif resize == "multiple" and image_original.shape[0] > 1000:
         scale_percent = 30  # percent of original size
-        width = int(image_bgr.shape[1] * scale_percent / 100)
-        height = int(image_bgr.shape[0] * scale_percent / 100)
+        width = int(image_original.shape[1] * scale_percent / 100)
+        height = int(image_original.shape[0] * scale_percent / 100)
         dim = (width, height)
 
-        image_bgr = cv2.resize(image_bgr, dim, interpolation=cv2.INTER_AREA)
+        image_original = cv2.resize(image_original, dim, interpolation=cv2.INTER_AREA)
 
     # creating a copy of the original image and converting it into HSV (Hue, Saturation, Value)
-    image = image_bgr.copy()
-    image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+    image = image_original.copy()
+    image_hsv = cv2.cvtColor(image_original, cv2.COLOR_BGR2HSV)
 
     # The masks for both reds and a bit of green
     mask_red_low = cv2.inRange(image_hsv, lower_red_low, lower_red_high)
@@ -67,13 +67,13 @@ def detect(path, min_r, max_r, resize):
 
     # cv2.RETR_EXTERNAL: We only need the external contours. Contours inside apples can be dropped
     # cv2.CHAIN_APPROX_SIMPLE: We have circles so we only need some points to get a circle and to save memory
-    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL,
-                                   cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(closing.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     coord_num = 0
     circles, coords = [], []
-    for i, c in enumerate(contours):
+    for _, circle in enumerate(contours):
         # Draw the smallest circle that still encloses the whole contour
-        ((x, y), r) = cv2.minEnclosingCircle(c)
+        ((x, y), r) = cv2.minEnclosingCircle(circle)
         circles.append(((x, y), r))
 
     for ((x, y), r) in circles:
@@ -85,16 +85,16 @@ def detect(path, min_r, max_r, resize):
                 coord_num += 1
                 coords.append((x, y))
                 cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
-                cv2.putText(image, "#{}".format(coord_num), (int(x) - 10, int(y)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+                cv2.putText(image, f"#{coord_num}", (int(x) - 10, int(y)),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 0, 0), 2)
             else:
                 # Check for distance to center point to center of every other circle
                 # If distance too small the Algorithm detected multiple circles on a single apple
                 if all(np.sqrt((coord[0] - x) ** 2 + (coord[1] - y) ** 2) > 90 for coord in coords):
                     coord_num += 1
                     cv2.circle(image, (int(x), int(y)), int(r), (0, 255, 0), 2)
-                    cv2.putText(image, "#{}".format(coord_num), (int(x) - 10, int(y)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+                    cv2.putText(image, f"#{coord_num}", (int(x) - 10, int(y)),
+                                cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 0, 0), 2)
                 coords.append((x, y))
         else:
             continue
